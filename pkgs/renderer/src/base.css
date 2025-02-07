@@ -10,6 +10,7 @@ body {
     height: 100%;
 
     display: flex;
+    background-color: #f0f0f0;
 }
 
 ::-webkit-scrollbar {

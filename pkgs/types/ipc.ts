@@ -1,10 +1,19 @@
+import type * as maa from '@maaxyz/maa-node'
+
+export type AdbDevice = {
+    name: string
+}
+
 export type MainService = {
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
+
+    'maa.scanDevice': () => AdbDevice[] | null
 }
 
 export type RendererService = {}
 
+type Get<O, K extends string> = K extends keyof O ? O[K] : never
 type MethodCategory<K extends string> = K extends `${infer C}.${infer N}` ? C : never
 // type MethodName<K extends string> = K extends `${infer C}.${infer N}` ? N : never
 type MethodsOfCategory<K extends string, C extends string> = K extends `${C}.${infer N}` ? N : never
@@ -18,13 +27,15 @@ type MaybePromisify<F extends (...args: unknown[]) => unknown> = (
 export type MainIpc = {
     main: {
         [C in MethodCategory<keyof MainService>]: {
-            [N in MethodsOfCategory<keyof MainService, C>]: MaybePromisify<MainService[`${C}.${N}`]>
+            [N in MethodsOfCategory<keyof MainService, C>]: MaybePromisify<
+                Get<MainService, `${C}.${N}`>
+            >
         }
     }
     renderer: {
         [C in MethodCategory<keyof RendererService>]: {
             readonly [N in MethodsOfCategory<keyof RendererService, C>]: Promisify<
-                RendererService[`${C}.${N}`]
+                Get<RendererService, `${C}.${N}`>
             >
         }
     }
@@ -34,14 +45,14 @@ export type RendererIpc = {
     main: {
         [C in MethodCategory<keyof MainService>]: {
             readonly [N in MethodsOfCategory<keyof MainService, C>]: Promisify<
-                MainService[`${C}.${N}`]
+                Get<MainService, `${C}.${N}`>
             >
         }
     }
     renderer: {
         [C in MethodCategory<keyof RendererService>]: {
             [N in MethodsOfCategory<keyof RendererService, C>]: MaybePromisify<
-                RendererService[`${C}.${N}`]
+                Get<RendererService, `${C}.${N}`>
             >
         }
     }

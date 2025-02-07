@@ -1,10 +1,12 @@
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import AboutView from '@/views/VAbout.vue'
+import VAbout from '@/views/VAbout.vue'
+import VStartContent from '@/views/VStartContent.vue'
+import VStartSide from '@/views/VStartSide.vue'
 
 const routes = [
-    { path: '/', components: { side: AboutView, content: AboutView } },
-    { path: '/about', components: { side: AboutView, content: AboutView } }
+    { path: '/', components: { side: VStartSide, content: VStartContent } },
+    { path: '/about', components: { side: VAbout, content: VAbout } }
 ]
 
 export default createRouter({

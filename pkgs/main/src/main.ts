@@ -18,6 +18,14 @@ app.on('ready', async () => {
 
     globalThis.main.misc.MaaFwVersion = () => maa.Global.version
     globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
+    globalThis.main.maa.scanDevice = async () => {
+        const devs = await maa.AdbController.find()
+        return devs
+            ? devs.map(x => ({
+                  name: x[0]
+              }))
+            : null
+    }
 })
 
 app.on('window-all-closed', () => {
