@@ -9,7 +9,7 @@ const devices = ref<AdbDevice[]>([])
 
 async function requestRefresh() {
     refreshing.value = true
-    devices.value = (await window.main.maa.scanDevice()) ?? []
+    devices.value = (await window.main.maa.ScanDevice()) ?? []
     refreshing.value = false
 }
 </script>

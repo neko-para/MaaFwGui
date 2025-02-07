@@ -1,15 +1,21 @@
 import type * as maa from '@maaxyz/maa-node'
 
+export type SystemInfo = {
+    platform: 'win32' | 'linux' | 'darwin'
+}
+
 export type AdbDevice = {
     name: string
     address: string
 }
 
 export type MainService = {
+    'utils.SystemInfo': () => SystemInfo
+
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
 
-    'maa.scanDevice': () => AdbDevice[] | null
+    'maa.ScanDevice': () => AdbDevice[] | null
 }
 
 export type RendererService = {}

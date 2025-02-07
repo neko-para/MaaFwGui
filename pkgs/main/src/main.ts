@@ -1,4 +1,5 @@
 import * as maa from '@maaxyz/maa-node'
+import { SystemInfo } from '@mfg/types'
 import { app } from 'electron'
 
 import pkg from '../../../package.json'
@@ -16,9 +17,12 @@ app.setAboutPanelOptions({
 app.on('ready', async () => {
     createWindow()
 
+    globalThis.main.utils.SystemInfo = () => ({
+        platform: process.platform as SystemInfo['platform']
+    })
     globalThis.main.misc.MaaFwVersion = () => maa.Global.version
     globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
-    globalThis.main.maa.scanDevice = async () => {
+    globalThis.main.maa.ScanDevice = async () => {
         const devs = await maa.AdbController.find()
         return devs
             ? devs.map(x => ({
