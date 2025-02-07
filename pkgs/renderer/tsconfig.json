@@ -1,0 +1,12 @@
+{
+    "extends": "@vue/tsconfig",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+          "@/*": ["src/*"]
+        },
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}
