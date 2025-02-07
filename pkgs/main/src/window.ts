@@ -11,6 +11,7 @@ export function createWindow() {
         minWidth: 800,
         minHeight: 600,
         titleBarStyle: 'hidden',
+        titleBarOverlay: process.platform === 'win32' || process.platform === 'linux',
         webPreferences: {
             preload: path.join(__dirname, '../preload/main.js')
         }

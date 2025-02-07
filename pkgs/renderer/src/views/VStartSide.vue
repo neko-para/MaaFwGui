@@ -21,15 +21,17 @@ async function requestRefresh() {
         </div>
         <div class="flex gap-2 justify-between">
             <span class="text-xl font-bold"> 其它设备 </span>
-            <n-button text @click="requestRefresh" :loading="refreshing">
-                <n-icon size="24">
-                    <refresh-outlined />
-                </n-icon>
+            <n-button text @click="requestRefresh" :loading="refreshing" :focusable="false">
+                <template #icon>
+                    <n-icon size="24">
+                        <refresh-outlined />
+                    </n-icon>
+                </template>
             </n-button>
         </div>
         <div v-for="(dev, idx) of devices" :key="idx" class="flex gap-2">
-            <span> {{ dev.name }} </span>
-            <n-button text>
+            <span> {{ dev.name }} - {{ dev.address }} </span>
+            <n-button text :focusable="false">
                 <n-icon size="24">
                     <link-outlined />
                 </n-icon>

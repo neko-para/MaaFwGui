@@ -2,6 +2,7 @@ import type * as maa from '@maaxyz/maa-node'
 
 export type AdbDevice = {
     name: string
+    address: string
 }
 
 export type MainService = {

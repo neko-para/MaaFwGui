@@ -22,7 +22,8 @@ app.on('ready', async () => {
         const devs = await maa.AdbController.find()
         return devs
             ? devs.map(x => ({
-                  name: x[0]
+                  name: x[0],
+                  address: x[2]
               }))
             : null
     }
