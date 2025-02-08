@@ -3,6 +3,8 @@
 body {
     width: 100vw;
     height: 100vh;
+
+    font-family: monospace !important;
 }
 
 #app {
@@ -23,4 +25,9 @@ body {
 
 .no-drag-window {
     -webkit-app-region: no-drag;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
 }
