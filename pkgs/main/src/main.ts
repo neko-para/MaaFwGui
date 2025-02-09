@@ -13,8 +13,8 @@ console.log(maa.Global.version, maa.AdbController.agent_path())
 
 app.setAboutPanelOptions({
     applicationName: pkg.name,
-    applicationVersion: pkg.version
-    // iconPath: path.join(__dirname, '../renderer/assets/icon.png')
+    applicationVersion: pkg.version,
+    iconPath: path.join(__dirname, '../renderer/assets/icon.png')
 })
 
 app.on('ready', async () => {

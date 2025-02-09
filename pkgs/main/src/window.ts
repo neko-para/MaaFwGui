@@ -14,8 +14,8 @@ export function createWindow() {
         titleBarOverlay: process.platform === 'win32' || process.platform === 'linux',
         webPreferences: {
             preload: path.join(__dirname, '../preload/main.js')
-        }
-        // icon: path.join(__dirname, '../renderer/assets/icon.png')
+        },
+        icon: path.join(__dirname, '../renderer/assets/icon.png')
     })
 
     if (app.isPackaged) {
