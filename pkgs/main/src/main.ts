@@ -1,5 +1,4 @@
 import * as maa from '@maaxyz/maa-node'
-import { SystemInfo } from '@mfg/types'
 import { app } from 'electron'
 import path from 'path'
 

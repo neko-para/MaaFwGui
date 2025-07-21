@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { AdbDevice } from '@mfg/types'
-import { LinkOutlined, RefreshOutlined } from '@vicons/material'
 import { NButton, NIcon } from 'naive-ui'
 import { ref } from 'vue'
+
+import { LinkOutlined, RefreshOutlined } from '@/icons'
 
 const refreshing = ref(false)
 const devices = ref<AdbDevice[]>([])
