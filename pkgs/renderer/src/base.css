@@ -2,7 +2,8 @@
 
 @font-face {
     font-family: 'Cera Round Pro';
-    src: url('@/assets/fonts/TypeMates Cera Round Pro Bold.otf'),
+    src:
+        url('@/assets/fonts/TypeMates Cera Round Pro Bold.otf'),
         url('@/assets/fonts/TypeMates Cera Round Pro Black.otf'),
         url('@/assets/fonts/TypeMates Cera Round Pro Light.otf'),
         url('@/assets/fonts/TypeMates Cera Round Pro Medium.otf'),
@@ -12,7 +13,8 @@
 
 @font-face {
     font-family: 'Sarasa UI';
-    src: url('@/assets/fonts/sarasa-ui-sc-bold.ttf'),
+    src:
+        url('@/assets/fonts/sarasa-ui-sc-bold.ttf'),
         url('@/assets/fonts/sarasa-ui-sc-bolditalic.ttf'),
         url('@/assets/fonts/sarasa-ui-sc-extralight.ttf'),
         url('@/assets/fonts/sarasa-ui-sc-extralightitalic.ttf'),
@@ -32,7 +34,8 @@ body {
     width: 100vw;
     height: 100vh;
 
-    font-family: 'Cera Round Pro', 'PingFang SC', 'Sarasa UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    font-family:
+        'Cera Round Pro', 'PingFang SC', 'Sarasa UI', Roboto, Oxygen, Ubuntu, Cantarell,
         'Open Sans', sans-serif !important;
 }
 
@@ -42,6 +45,8 @@ body {
 
     display: flex;
     background-color: #f0f0f0;
+
+    overflow: hidden;
 }
 
 ::-webkit-scrollbar {

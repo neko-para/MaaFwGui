@@ -3,20 +3,20 @@ import fs from 'fs/promises'
 import path from 'path'
 
 import pkg from '../../../../package.json'
-import { MfgResourceManager } from './resourceManager'
+import { MfgProjectManager } from './projectManager'
 import { AppConfig } from './types'
 
 class MfgApp {
     root: string
 
     config: AppConfig
-    resourceManager: MfgResourceManager
+    projectManager: MfgProjectManager
 
     constructor(root: string) {
         this.root = root
 
         this.config = {}
-        this.resourceManager = new MfgResourceManager()
+        this.projectManager = new MfgProjectManager()
     }
 
     async init() {
@@ -24,7 +24,7 @@ class MfgApp {
 
         await this.loadConfig()
 
-        await this.resourceManager.init()
+        await this.projectManager.init()
     }
 
     get configPath() {

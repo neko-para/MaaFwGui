@@ -1,5 +1,5 @@
-import { ResourceInfo } from '@mfg/types/resource'
+import { ProjectInfo } from '@mfg/types'
 
 export type AppConfig = {
-    resource?: ResourceInfo[]
+    projects?: ProjectInfo[]
 }

@@ -11,9 +11,9 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="flex flex-col">
-        <div class="w-screen h-7 pointer-events-none drag-window"></div>
-        <div class="flex">
+    <div class="flex flex-col h-full">
+        <div class="w-screen h-7 pointer-events-none drag-window shrink-0"></div>
+        <div class="flex min-h-0">
             <div class="h-full w-75">
                 <router-view name="side"></router-view>
             </div>

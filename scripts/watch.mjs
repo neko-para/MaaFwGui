@@ -22,6 +22,7 @@ async function watchMain(server, preloadOk) {
             DEBUG_IN_VSCODE: '1'
         })
     }
+    let reloading = false
     const ctx = await esbuild.context({
         entryPoints: ['pkgs/main/src/main.ts'],
         platform: 'node',
@@ -36,6 +37,7 @@ async function watchMain(server, preloadOk) {
                     ctx.onEnd(async () => {
                         console.log('main rebuilt')
                         if (electronProcess) {
+                            reloading = true
                             electronProcess.kill('SIGINT')
                         }
                         if (preloadOk) {
@@ -51,6 +53,13 @@ async function watchMain(server, preloadOk) {
                                 env
                             }
                         )
+                        electronProcess.on('exit', () => {
+                            if (reloading) {
+                                reloading = false
+                            } else {
+                                process.exit(0)
+                            }
+                        })
                     })
                 }
             }
@@ -59,9 +68,6 @@ async function watchMain(server, preloadOk) {
     process.on('SIGINT', () => {
         if (electronProcess) {
             electronProcess.kill('SIGINT')
-            electronProcess.on('exit', () => {
-                process.exit(0)
-            })
         } else {
             process.exit(0)
         }
@@ -106,7 +112,3 @@ const server = await createServer({
 await server.listen()
 const preloadOk = watchPreload(server)
 await watchMain(server, preloadOk)
-
-process.on('SIGINT', () => {
-    process.exit(0)
-})
