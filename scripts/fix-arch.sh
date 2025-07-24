@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=`cat package.json | jq '.dependencies."@maaxyz/maa-node"'`
+VERSION=`cat package.json | jq -r '.dependencies."@maaxyz/maa-node"'`
 echo "Package Version $VERSION"
 
 case $1 in
