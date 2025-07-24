@@ -64,4 +64,5 @@ body {
 .form-grid {
     display: grid;
     grid-template-columns: max-content 1fr;
+    grid-auto-rows: 1fr;
 }

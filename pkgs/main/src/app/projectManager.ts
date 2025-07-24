@@ -1,4 +1,4 @@
-import { ProjectId } from '@mfg/types'
+import { Interface, ProjectId } from '@mfg/types'
 import { dialog } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
@@ -39,12 +39,26 @@ export class MfgProjectManager {
             }
         }
         globalThis.main.project.load = async id => {
+            return mfgApp.config.projects?.find(x => x.id === id) ?? null
+        }
+        globalThis.main.project.loadInterface = async id => {
             const info = mfgApp.config.projects?.find(x => x.id === id)
             if (!info) {
                 return null
             }
-            const content = JSON.parse(await fs.readFile(info.path, 'utf8'))
+            const content = JSON.parse(await fs.readFile(info.path, 'utf8')) as Interface
             return content
         }
+        // globalThis.main.project.loadConfig = id => {
+        //     return mfgApp.config.projectConfigs?.[id] ?? null
+        // }
+        // globalThis.main.project.updateConfig = async (id, cfg) => {
+        //     mfgApp.config.projectConfigs = mfgApp.config.projectConfigs ?? {}
+        //     mfgApp.config.projectConfigs[id] = {
+        //         ...mfgApp.config.projectConfigs[id],
+        //         ...cfg
+        //     }
+        //     await mfgApp.saveConfig()
+        // }
     }
 }

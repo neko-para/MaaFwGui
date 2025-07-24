@@ -21,15 +21,6 @@ app.on('ready', async () => {
 
     globalThis.main.misc.MaaFwVersion = () => maa.Global.version
     globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
-    globalThis.main.maa.ScanDevice = async () => {
-        const devs = await maa.AdbController.find()
-        return devs
-            ? devs.map(x => ({
-                  name: x[0],
-                  address: x[2]
-              }))
-            : null
-    }
 
     mfgApp.init()
     initUtils()

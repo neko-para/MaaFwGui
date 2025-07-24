@@ -2,16 +2,30 @@
 import { NButton, NIcon } from 'naive-ui'
 import { ref } from 'vue'
 
-const props = defineProps<{
-    action: () => Promise<void> | void
+const props = withDefaults(
+    defineProps<{
+        action?: () => Promise<void> | void
+        useLoading?: boolean
+    }>(),
+    {
+        useLoading: false
+    }
+)
+
+const emits = defineEmits<{
+    action: []
 }>()
 
 const running = ref(false)
 
 async function doAction() {
-    running.value = true
-    await props.action()
-    running.value = false
+    if (props.useLoading) {
+        running.value = true
+        await props.action?.()
+        running.value = false
+    } else {
+        emits('action')
+    }
 }
 </script>
 

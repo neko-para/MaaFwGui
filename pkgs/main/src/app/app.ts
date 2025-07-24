@@ -3,6 +3,8 @@ import fs from 'fs/promises'
 import path from 'path'
 
 import pkg from '../../../../package.json'
+import { MfgDeviceManager } from './deviceManager'
+import { MfgProfileManager } from './profileManager'
 import { MfgProjectManager } from './projectManager'
 import { AppConfig } from './types'
 
@@ -10,13 +12,17 @@ class MfgApp {
     root: string
 
     config: AppConfig
+    profileManager: MfgProfileManager
     projectManager: MfgProjectManager
+    deviceManager: MfgDeviceManager
 
     constructor(root: string) {
         this.root = root
 
         this.config = {}
+        this.profileManager = new MfgProfileManager()
         this.projectManager = new MfgProjectManager()
+        this.deviceManager = new MfgDeviceManager()
     }
 
     async init() {
@@ -24,7 +30,9 @@ class MfgApp {
 
         await this.loadConfig()
 
+        await this.profileManager.init()
         await this.projectManager.init()
+        await this.deviceManager.init()
     }
 
     get configPath() {

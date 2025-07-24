@@ -2,11 +2,9 @@
 import { useRouter } from 'vue-router'
 
 import MIconButton from '@/components/MIconButton.vue'
-import MProjectEntry from '@/components/project/MProjectEntry.vue'
-import { MoreHorizOutlined } from '@/icons'
-import { projectInfo } from '@/states/project'
-
-import { useProject } from './VProjectState'
+import MProjectEntry from '@/components/MProjectEntry.vue'
+import { MoreHorizOutlined, NavigateBeforeOutlined } from '@/icons'
+import { projectInfo, useProject } from '@/states/project'
 
 const router = useRouter()
 const { projectId, activeProjectInfo } = useProject()
@@ -14,15 +12,17 @@ const { projectId, activeProjectInfo } = useProject()
 
 <template>
     <div v-if="activeProjectInfo" class="m-4 flex flex-col gap-2">
-        <div class="flex gap-2 justify-between">
+        <div class="flex gap-2">
             <span class="text-xl font-bold"> 当前项目 </span>
+            <div class="flex-1"></div>
+            <m-icon-button @action="router.back()">
+                <navigate-before-outlined></navigate-before-outlined>
+            </m-icon-button>
             <m-icon-button
-                :action="
-                    () => {
-                        router.replace({
-                            path: '/project'
-                        })
-                    }
+                @action="
+                    router.replace({
+                        path: '/project'
+                    })
                 "
             >
                 <more-horiz-outlined></more-horiz-outlined>

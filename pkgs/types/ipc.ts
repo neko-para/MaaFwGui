@@ -1,20 +1,17 @@
 import type * as maa from '@maaxyz/maa-node'
 
+import type { AdbDevice, AdbDeviceId } from './device'
+import type { ProfileId, ProfileInfo, StageId, StageInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
 
 export type SystemInfo = {
     platform: 'win32' | 'linux' | 'darwin'
 }
 
-export type AdbDevice = {
-    name: string
-    address: string
-}
-
 export type Interface = {
     controller: {
         name: string
-        type: 'Adb' | 'Win32' | 'VscFixed'
+        type: 'Adb' | 'Win32'
         adb?: {
             screencap?: maa.api.ScreencapOrInputMethods
             input?: maa.api.ScreencapOrInputMethods
@@ -63,11 +60,21 @@ export type MainService = {
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
 
-    'maa.ScanDevice': () => AdbDevice[] | null
+    'profile.query': () => ProfileInfo[]
+    'profile.new': () => void
+    'profile.update': (id: ProfileId, cfg: Partial<ProfileInfo>) => void
+
+    'stage.new': (id: ProfileId) => void
+    'stage.del': (id: ProfileId, sid: StageId) => void
+    'stage.update': (id: ProfileId, sid: StageId, cfg: Partial<StageInfo>) => void
 
     'project.query': () => ProjectInfo[]
     'project.new': () => void
-    'project.load': (id: ProjectId) => Interface | null
+    'project.load': (id: ProjectId) => ProjectInfo | null
+    'project.loadInterface': (id: ProjectId) => Interface | null
+
+    'device.query': () => AdbDevice[]
+    'device.scan': () => AdbDevice[]
 }
 
 export type RendererService = {}
