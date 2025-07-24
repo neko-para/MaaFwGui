@@ -48,7 +48,7 @@ jobs:
                   npm run package -- --arch ${{ matrix.arch }}
                   NAME=`ls out`
                   mkdir output
-                  tar zcvf output/$NAME.tar.gz out/$NAME
+                  tar -C out zcvf output/$NAME.tar.gz $NAME
 
             - uses: actions/upload-artifact@v4
               if: always()
