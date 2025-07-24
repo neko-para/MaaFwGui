@@ -36,7 +36,8 @@ jobs:
 
             - name: Install deps
               run: |
-                  npm i --cpu ${{ matrix.arch }}
+                  npm i
+                  scripts/fix-arch.sh
 
             - name: Build
               run: |
@@ -52,5 +53,5 @@ jobs:
             - uses: actions/upload-artifact@v4
               if: always()
               with:
-                  name: MAA-win-${{ matrix.arch }}
+                  name: MAA-${{ matrix.os }}-${{ matrix.arch }}
                   path: 'output'
