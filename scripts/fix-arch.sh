@@ -23,5 +23,5 @@ esac
 
 if [[ "$2" == "$CROSSARCH" ]]; then
     npm uninstall @maaxyz/maa-node
-    npm i @maaxyz/maa-node@$VERSION --cpu $CROSSARCH --force
+    npm i @maaxyz/maa-node@$VERSION --cpu $CROSSARCH
 fi
