@@ -1,4 +1,4 @@
-import { ProfileId, ProfileInfo, StageId } from '@mfg/types'
+import { ProfileId, ProfileInfo, StageId, TaskId, TaskInfo } from '@mfg/types'
 
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
@@ -67,6 +67,54 @@ export class MfgProfileManager {
                 return
             }
             Object.assign(stage, cfg)
+            await mfgApp.saveConfig()
+        }
+
+        globalThis.main.task.new = async (id, sid) => {
+            const profile = mfgApp.config.profiles?.find(p => p.id === id)
+            if (!profile) {
+                return
+            }
+            const stage = profile.stages.find(s => s.id === sid)
+            if (!stage) {
+                return
+            }
+            const task: TaskInfo = {
+                id: generateId() as TaskId
+            }
+            stage.tasks = [...(stage.tasks ?? []), task]
+            await mfgApp.saveConfig()
+        }
+        globalThis.main.task.del = async (id, sid, tid) => {
+            const profile = mfgApp.config.profiles?.find(p => p.id === id)
+            if (!profile) {
+                return
+            }
+            const stage = profile.stages.find(s => s.id === sid)
+            if (!stage) {
+                return
+            }
+            const taskIdx = stage.tasks?.findIndex(t => t.id === tid) ?? -1
+            if (taskIdx === -1) {
+                return
+            }
+            stage.tasks?.splice(taskIdx, 1)
+            await mfgApp.saveConfig()
+        }
+        globalThis.main.task.update = async (id, sid, tid, cfg) => {
+            const profile = mfgApp.config.profiles?.find(p => p.id === id)
+            if (!profile) {
+                return
+            }
+            const stage = profile.stages.find(s => s.id === sid)
+            if (!stage) {
+                return
+            }
+            const task = stage.tasks?.find(t => t.id === tid)
+            if (!task) {
+                return
+            }
+            Object.assign(task, cfg)
             await mfgApp.saveConfig()
         }
     }

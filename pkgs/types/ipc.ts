@@ -1,7 +1,7 @@
 import type * as maa from '@maaxyz/maa-node'
 
 import type { AdbDevice, AdbDeviceId } from './device'
-import type { ProfileId, ProfileInfo, StageId, StageInfo } from './profile'
+import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
 
 export type SystemInfo = {
@@ -68,6 +68,10 @@ export type MainService = {
     'stage.new': (id: ProfileId) => void
     'stage.del': (id: ProfileId, sid: StageId) => void
     'stage.update': (id: ProfileId, sid: StageId, cfg: Partial<StageInfo>) => void
+
+    'task.new': (id: ProfileId, sid: StageId) => void
+    'task.del': (id: ProfileId, sid: StageId, tid: TaskId) => void
+    'task.update': (id: ProfileId, sid: StageId, tid: TaskId, cfg: Partial<TaskInfo>) => void
 
     'project.query': () => ProjectInfo[]
     'project.new': () => void

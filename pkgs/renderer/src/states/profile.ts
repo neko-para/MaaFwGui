@@ -1,4 +1,4 @@
-import type { ProfileId, ProfileInfo, StageId } from '@mfg/types'
+import type { ProfileId, ProfileInfo, StageId, TaskId } from '@mfg/types'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -18,13 +18,23 @@ export async function syncProfile() {
     profileInfo.value = await window.main.profile.query()
 }
 
-export async function requestNewStage(profile: ProfileId) {
-    await window.main.stage.new(profile)
+export async function requestNewStage(pid: ProfileId) {
+    await window.main.stage.new(pid)
     await syncProfile()
 }
 
 export async function requestDelStage(pid: ProfileId, sid: StageId) {
     await window.main.stage.del(pid, sid)
+    await syncProfile()
+}
+
+export async function requestNewTask(pid: ProfileId, sid: StageId) {
+    await window.main.task.new(pid, sid)
+    await syncProfile()
+}
+
+export async function requestDelTask(pid: ProfileId, sid: StageId, tid: TaskId) {
+    await window.main.task.del(pid, sid, tid)
     await syncProfile()
 }
 
@@ -35,8 +45,16 @@ export function useProfile() {
 
     const activeProfileInfo = computed(() => profileInfo.value.find(x => x.id === profileId.value))
 
+    const stageId = computed(() => route.params.stage_id as StageId | undefined)
+
+    const activeStageInfo = computed(() =>
+        activeProfileInfo.value?.stages.find(x => x.id === stageId.value)
+    )
+
     return {
         profileId,
-        activeProfileInfo
+        activeProfileInfo,
+        stageId,
+        activeStageInfo
     }
 }

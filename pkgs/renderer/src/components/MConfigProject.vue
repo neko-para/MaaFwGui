@@ -6,7 +6,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MIconButton from '@/components/MIconButton.vue'
-import { SmartphoneOutlined } from '@/icons'
+import { SettingsOutlined, SmartphoneOutlined } from '@/icons'
 import { deviceInfo } from '@/states/device'
 import { syncProfile, useProfile } from '@/states/profile'
 
@@ -119,4 +119,18 @@ onMounted(async () => {
             </m-icon-button>
         </div>
     </template>
+    <span> 任务 </span>
+    <div class="flex items-center gap-2">
+        <span> 已配置{{ stage.tasks?.length ?? 0 }}个任务 </span>
+        <div class="flex-1"></div>
+        <m-icon-button
+            @action="
+                router.push({
+                    path: `/profile/${profileId}/stage/${stage.id}`
+                })
+            "
+        >
+            <settings-outlined></settings-outlined>
+        </m-icon-button>
+    </div>
 </template>
