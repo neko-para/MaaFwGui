@@ -17,7 +17,6 @@ defaults:
 
 jobs:
     build:
-        needs: meta
         strategy:
             matrix:
                 os: [windows, ubuntu, macos]
