@@ -25,5 +25,5 @@ if [[ "$2" == "$CROSSARCH" ]]; then
     echo "Uninstall @maaxyz/maa-node-$PLATFORM-$SYSARCH"
     npm uninstall @maaxyz/maa-node-$PLATFORM-$SYSARCH --force
     echo "Install @maaxyz/maa-node-$PLATFORM-$CROSSARCH"
-    npm i @maaxyz/maa-node-$PLATFORM-$CROSSARCH@VERSION
+    npm i @maaxyz/maa-node-$PLATFORM-$CROSSARCH@$VERSION
 fi
