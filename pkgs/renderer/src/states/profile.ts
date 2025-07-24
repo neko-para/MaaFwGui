@@ -9,6 +9,11 @@ export async function requestNewProfile() {
     profileInfo.value = await window.main.profile.query()
 }
 
+export async function requestDelProfile(pid: ProfileId) {
+    await window.main.profile.del(pid)
+    await syncProfile()
+}
+
 export async function syncProfile() {
     profileInfo.value = await window.main.profile.query()
 }

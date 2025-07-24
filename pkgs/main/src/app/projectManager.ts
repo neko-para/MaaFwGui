@@ -18,7 +18,7 @@ export class MfgProjectManager {
                 filters: [
                     {
                         name: 'interface',
-                        extensions: ['.json']
+                        extensions: ['json']
                     }
                 ]
             })

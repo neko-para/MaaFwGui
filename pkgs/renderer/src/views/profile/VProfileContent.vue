@@ -4,14 +4,8 @@ import { useRouter } from 'vue-router'
 
 import MIconButton from '@/components/MIconButton.vue'
 import MStage from '@/components/MStage.vue'
-import { AddOutlined, EditOutlined } from '@/icons'
-import {
-    profileInfo,
-    requestDelStage,
-    requestNewStage,
-    syncProfile,
-    useProfile
-} from '@/states/profile'
+import { AddOutlined, CloseOutlined } from '@/icons'
+import { requestDelProfile, requestNewStage, syncProfile, useProfile } from '@/states/profile'
 import { findProject, projectInfo } from '@/states/project'
 
 const { activeProfileInfo, profileId } = useProfile()
@@ -27,9 +21,15 @@ async function updateName(name: string) {
 </script>
 
 <template>
-    <div v-if="profileId && activeProfileInfo" class="flex flex-col gap-2 m-4">
+    <div v-if="profileId && activeProfileInfo" class="flex flex-col gap-2 m-4 min-h-0 grow-0">
         <div class="flex flex-col gap-2">
-            <span class="text-xl font-bold"> 基础信息 </span>
+            <div class="flex items-center gap-2">
+                <span class="text-xl"> 基础信息 </span>
+                <div class="flex-1"></div>
+                <m-icon-button @action="requestDelProfile(profileId)">
+                    <close-outlined></close-outlined>
+                </m-icon-button>
+            </div>
             <div class="m-4 form-grid items-center gap-2">
                 <span> 名称 </span>
                 <n-input
@@ -42,7 +42,7 @@ async function updateName(name: string) {
 
         <div class="flex flex-col gap-2 min-h-0 grow-0">
             <div class="flex items-center gap-2">
-                <span class="text-xl font-bold"> 步骤列表 </span>
+                <span class="text-xl"> 步骤列表 </span>
                 <div class="flex-1"></div>
                 <m-icon-button @action="requestNewStage(profileId)">
                     <add-outlined></add-outlined>

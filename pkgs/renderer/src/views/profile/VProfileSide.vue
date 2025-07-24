@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MEntry from '@/components/MEntry.vue'
@@ -8,12 +9,20 @@ import { profileInfo, useProfile } from '@/states/profile'
 
 const router = useRouter()
 const { profileId, activeProfileInfo } = useProfile()
+
+onMounted(() => {
+    if (!activeProfileInfo.value) {
+        router.replace({
+            path: '/profile'
+        })
+    }
+})
 </script>
 
 <template>
     <div v-if="activeProfileInfo" class="m-4 flex flex-col gap-2">
         <div class="flex gap-2">
-            <span class="text-xl font-bold"> 当前方案 </span>
+            <span class="text-xl"> 当前方案 </span>
             <div class="flex-1"></div>
             <m-icon-button
                 @action="
@@ -31,7 +40,7 @@ const { profileId, activeProfileInfo } = useProfile()
             </span>
         </m-entry>
         <div class="flex gap-2 justify-between">
-            <span class="text-xl font-bold"> 其它方案 </span>
+            <span class="text-xl"> 其它方案 </span>
         </div>
         <template v-for="profile in profileInfo" :key="profile.id">
             <m-entry

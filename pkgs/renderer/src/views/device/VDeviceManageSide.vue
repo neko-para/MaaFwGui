@@ -18,14 +18,14 @@ onMounted(() => {
 <template>
     <div class="m-4 flex flex-col gap-2">
         <div class="flex gap-2">
-            <span class="text-xl font-bold"> 已连接的设备 </span>
+            <span class="text-xl"> 已连接的设备 </span>
             <div class="flex-1"></div>
             <m-icon-button @action="router.back()">
                 <navigate-before-outlined></navigate-before-outlined>
             </m-icon-button>
         </div>
         <div class="flex gap-2">
-            <span class="text-xl font-bold"> 其它设备 </span>
+            <span class="text-xl"> 其它设备 </span>
             <div class="flex-1"></div>
             <m-icon-button :action="requestScanDevices" use-loading>
                 <refresh-outlined />

@@ -61,6 +61,7 @@ export type MainService = {
     'misc.MaaFwVersion': () => string
 
     'profile.query': () => ProfileInfo[]
+    'profile.del': (id: ProfileId) => void
     'profile.new': () => void
     'profile.update': (id: ProfileId, cfg: Partial<ProfileInfo>) => void
 

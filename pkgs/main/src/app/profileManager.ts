@@ -17,6 +17,14 @@ export class MfgProfileManager {
             mfgApp.config.profiles = [...(mfgApp.config.profiles ?? []), profile]
             await mfgApp.saveConfig()
         }
+        globalThis.main.profile.del = async id => {
+            const profileIndex = mfgApp.config.profiles?.findIndex(p => p.id === id) ?? -1
+            if (profileIndex === -1) {
+                return
+            }
+            mfgApp.config.profiles?.splice(profileIndex, 1)
+            await mfgApp.saveConfig()
+        }
         globalThis.main.profile.update = async (id, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {

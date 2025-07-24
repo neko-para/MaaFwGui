@@ -13,7 +13,7 @@ const { projectId, activeProjectInfo } = useProject()
 <template>
     <div v-if="activeProjectInfo" class="m-4 flex flex-col gap-2">
         <div class="flex gap-2">
-            <span class="text-xl font-bold"> 当前项目 </span>
+            <span class="text-xl"> 当前项目 </span>
             <div class="flex-1"></div>
             <m-icon-button @action="router.back()">
                 <navigate-before-outlined></navigate-before-outlined>
@@ -30,7 +30,7 @@ const { projectId, activeProjectInfo } = useProject()
         </div>
         <m-project-entry> {{ activeProjectInfo.name }} </m-project-entry>
         <div class="flex gap-2 justify-between">
-            <span class="text-xl font-bold"> 其它项目 </span>
+            <span class="text-xl"> 其它项目 </span>
         </div>
         <template v-for="res in projectInfo" :key="res.id">
             <m-project-entry

@@ -17,7 +17,7 @@ onMounted(async () => {
 <template>
     <div class="m-4 flex flex-col gap-2">
         <div class="flex gap-2">
-            <span class="text-xl font-bold"> 项目列表 </span>
+            <span class="text-xl"> 项目列表 </span>
             <div class="flex-1"></div>
             <m-icon-button @action="router.back()">
                 <navigate-before-outlined></navigate-before-outlined>
