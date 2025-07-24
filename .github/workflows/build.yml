@@ -37,7 +37,7 @@ jobs:
             - name: Install deps
               run: |
                   npm i
-                  scripts/fix-arch.sh
+                  scripts/fix-arch.sh ${{ matrix.os }} ${{ matrix.arch }}
 
             - name: Build
               run: |
