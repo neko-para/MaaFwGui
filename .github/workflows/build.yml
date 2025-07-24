@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+      - '.vscode'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+    build:
+        needs: meta
+        strategy:
+            matrix:
+                os: [windows, ubuntu, macos]
+                arch: [x64, arm64]
+            fail-fast: false
+        runs-on: ${{ matrix.os }}-latest
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: true
+
+            - name: Use Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Install deps
+              run: |
+                  npm i --cpu ${{ matrix.arch }}
+
+            - name: Build
+              run: |
+                  node scripts/build.mjs
+            
+            - name: Package
+              run: |
+                  npm run package -- --arch ${{ matrix.arch }}
+                  NAME=`ls out`
+                  mkdir output
+                  tar zcvf output/$NAME.tar.gz out/$NAME
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: MAA-win-${{ matrix.arch }}
+                  path: 'output'
