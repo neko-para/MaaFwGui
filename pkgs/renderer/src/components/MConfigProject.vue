@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { AdbDeviceId, Interface, ProjectInfo, StageId, StageInfo } from '@mfg/types'
+import type { AdbDeviceId, ProjectInfo, StageInfo } from '@mfg/types'
 import { NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MIconButton from '@/components/MIconButton.vue'
 import { SettingsOutlined, SmartphoneOutlined } from '@/icons'
 import { deviceInfo } from '@/states/device'
 import { syncProfile, useProfile } from '@/states/profile'
+import { useInterface } from '@/states/project'
 
 const props = defineProps<{
     stage: StageInfo
@@ -19,7 +20,7 @@ const router = useRouter()
 
 const { profileId } = useProfile()
 
-const interfaceData = ref<Interface | null>(null)
+const { interfaceData } = useInterface(() => props.project.id)
 
 const resourceOptions = computed(() => {
     return (
@@ -76,10 +77,6 @@ async function selectDevice(deviceId: AdbDeviceId) {
     })
     await syncProfile()
 }
-
-onMounted(async () => {
-    interfaceData.value = await window.main.project.loadInterface(props.project.id)
-})
 </script>
 
 <template>

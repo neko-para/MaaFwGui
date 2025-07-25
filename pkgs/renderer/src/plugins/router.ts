@@ -1,21 +1,22 @@
 import { type RouteRecordRaw, createMemoryHistory, createRouter } from 'vue-router'
 
 import VAbout from '@/views/VAbout.vue'
-import { DeviceManage } from '@/views/device'
-import { Profile, ProfileManage } from '@/views/profile'
+import { Device } from '@/views/device'
+import { Profile } from '@/views/profile'
 import { Stage } from '@/views/profile/stage'
-import { Project, ProjectManage } from '@/views/project'
+import { Project } from '@/views/project'
 
 const routes = [
     { path: '/', redirect: '/profile' },
     { path: '/about', components: { side: VAbout, content: VAbout } },
-    { path: '/profile', components: ProfileManage },
+    { path: '/profile', components: Profile },
     { path: '/profile/:profile_id', components: Profile },
+    { path: '/profile/:profile_id/stage', components: Stage },
     { path: '/profile/:profile_id/stage/:stage_id', components: Stage },
-    { path: '/project', components: ProjectManage },
+    { path: '/project', components: Project },
     { path: '/project/:project_id', components: Project },
-    { path: '/device', components: DeviceManage },
-    { path: '/device/:device_id', components: DeviceManage }
+    { path: '/device', components: Device },
+    { path: '/device/:device_id', components: Device }
 ] satisfies RouteRecordRaw[]
 
 export default createRouter({

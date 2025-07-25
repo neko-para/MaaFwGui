@@ -1,7 +1,7 @@
-import VDeviceManageContent from './VDeviceManageContent.vue'
-import VDeviceManageSide from './VDeviceManageSide.vue'
+import VDeviceContent from './VDeviceContent.vue'
+import VDeviceSide from './VDeviceSide.vue'
 
-export const DeviceManage = {
-    side: VDeviceManageSide,
-    content: VDeviceManageContent
+export const Device = {
+    side: VDeviceSide,
+    content: VDeviceContent
 }

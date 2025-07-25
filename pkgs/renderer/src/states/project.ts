@@ -1,5 +1,5 @@
-import type { ProjectId, ProjectInfo } from '@mfg/types'
-import { computed, ref } from 'vue'
+import type { Interface, ProjectId, ProjectInfo } from '@mfg/types'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 export const projectInfo = ref<ProjectInfo[]>([])
@@ -28,4 +28,24 @@ export function useProject() {
         projectId,
         activeProjectInfo
     }
+}
+
+export function useInterface(getId: () => ProjectId | undefined) {
+    const interfaceData = ref<Interface | null>(null)
+
+    watch(
+        getId,
+        id => {
+            if (id) {
+                window.main.project.loadInterface(id).then(i => {
+                    interfaceData.value = i
+                })
+            }
+        },
+        {
+            immediate: true
+        }
+    )
+
+    return { interfaceData }
 }

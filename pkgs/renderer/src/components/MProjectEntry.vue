@@ -9,7 +9,7 @@ defineEmits<{
 <template>
     <div class="mx-2 flex justify-start">
         <n-button text :focusable="false" @click="$emit('click')">
-            <span class="text-lg">
+            <span class="text-xl">
                 <slot></slot>
             </span>
         </n-button>

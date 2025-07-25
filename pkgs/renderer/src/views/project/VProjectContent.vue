@@ -1,34 +1,9 @@
 <script setup lang="ts">
-import type { AdbDeviceId, Interface } from '@mfg/types'
-import { NButton, NSelect } from 'naive-ui'
-import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-
-import MIconButton from '@/components/MIconButton.vue'
-import { SmartphoneOutlined } from '@/icons'
-import { deviceInfo } from '@/states/device'
-import { useProject } from '@/states/project'
+import { useInterface, useProject } from '@/states/project'
 
 const { activeProjectInfo, projectId } = useProject()
 
-const router = useRouter()
-
-const interfaceData = ref<Interface | null>(null)
-
-watch(
-    () => projectId.value,
-    id => {
-        if (id) {
-            window.main.project.loadInterface(id).then(i => {
-                interfaceData.value = i
-            })
-        }
-    },
-    {
-        immediate: true
-    }
-)
+const { interfaceData } = useInterface(() => projectId.value)
 </script>
 
 <template>

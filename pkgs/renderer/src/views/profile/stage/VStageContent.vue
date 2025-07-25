@@ -2,18 +2,19 @@
 import type { Interface, TaskId } from '@mfg/types'
 import { NCard, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MIconButton from '@/components/MIconButton.vue'
 import { AddOutlined, NavigateBeforeOutlined } from '@/icons'
 import { requestDelTask, requestNewTask, syncProfile, useProfile } from '@/states/profile'
+import { useInterface } from '@/states/project'
 
 const router = useRouter()
 
 const { profileId, stageId, activeStageInfo } = useProfile()
 
-const interfaceData = ref<Interface | null>(null)
+const { interfaceData } = useInterface(() => activeStageInfo.value?.project)
 
 const taskOptions = computed(() => {
     return interfaceData.value?.task.map(task => {
@@ -61,20 +62,6 @@ async function selectOption(
     })
     await syncProfile()
 }
-
-watch(
-    () => activeStageInfo.value?.project,
-    id => {
-        if (id) {
-            window.main.project.loadInterface(id).then(i => {
-                interfaceData.value = i
-            })
-        }
-    },
-    {
-        immediate: true
-    }
-)
 </script>
 
 <template>
@@ -116,9 +103,8 @@ watch(
                         @update:value="v => selectOption(task.id, option, v, task.option)"
                     ></n-select>
                 </template>
-                <span></span>
-                {{ task }}
             </div>
+            {{ task }}
         </n-card>
     </div>
 </template>

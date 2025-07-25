@@ -5,7 +5,8 @@ import { useRouter } from 'vue-router'
 
 import MEntry from '@/components/MEntry.vue'
 import MIconButton from '@/components/MIconButton.vue'
-import { LinkOutlined, NavigateBeforeOutlined, RefreshOutlined } from '@/icons'
+import MNavBackButton from '@/components/buttons/MNavBackButton.vue'
+import { LinkOutlined, RefreshOutlined } from '@/icons'
 import { deviceInfo, requestScanDevices, syncDevices } from '@/states/device'
 
 const router = useRouter()
@@ -20,9 +21,7 @@ onMounted(() => {
         <div class="flex gap-2">
             <span class="text-xl"> 已连接的设备 </span>
             <div class="flex-1"></div>
-            <m-icon-button @action="router.back()">
-                <navigate-before-outlined></navigate-before-outlined>
-            </m-icon-button>
+            <m-nav-back-button></m-nav-back-button>
         </div>
         <div class="flex gap-2">
             <span class="text-xl"> 其它设备 </span>
