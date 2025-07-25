@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { NInput, NScrollbar } from 'naive-ui'
+import { NButton, NInput, NScrollbar } from 'naive-ui'
 
 import MIconButton from '@/components/MIconButton.vue'
 import MStage from '@/components/MStage.vue'
 import MStageLaunch from '@/components/MStageLaunch.vue'
-import { AddOutlined, CloseOutlined, PauseOutlined, PlayArrowOutlined, StopOutlined } from '@/icons'
+import { AddOutlined } from '@/icons'
 import { useLaunch } from '@/states/launch'
 import {
     requestDelLaunch,
@@ -34,23 +34,25 @@ async function updateName(name: string) {
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 基础信息 </span>
                 <div class="flex-1"></div>
-                <m-icon-button v-if="!activeLaunchStatus" @action="requestNewLaunch(profileId)">
-                    <play-arrow-outlined></play-arrow-outlined>
-                </m-icon-button>
+                <n-button
+                    v-if="!activeLaunchStatus"
+                    @click="requestNewLaunch(profileId)"
+                    type="primary"
+                >
+                    启动
+                </n-button>
                 <template v-else-if="launchId">
-                    <m-icon-button
+                    <n-button
                         v-if="!activeLaunchStatus.stopped"
-                        @action="requestStopLaunch(launchId)"
+                        @click="requestStopLaunch(launchId)"
+                        type="primary"
                     >
-                        <pause-outlined></pause-outlined>
-                    </m-icon-button>
-                    <m-icon-button v-else @action="requestDelLaunch(launchId)">
-                        <stop-outlined></stop-outlined>
-                    </m-icon-button>
+                        停止
+                    </n-button>
+                    <n-button v-else @click="requestDelLaunch(launchId)" type="primary">
+                        结束
+                    </n-button>
                 </template>
-                <m-icon-button @action="requestDelProfile(profileId)">
-                    <close-outlined></close-outlined>
-                </m-icon-button>
             </div>
             <div class="m-4 form-grid items-center gap-2">
                 <span> 名称 </span>
@@ -59,6 +61,10 @@ async function updateName(name: string) {
                     :value="activeProfileInfo.name"
                     @update:value="updateName"
                 ></n-input>
+                <span></span>
+                <div class="flex gap-2">
+                    <n-button @click="requestDelProfile(profileId)"> 删除 </n-button>
+                </div>
             </div>
         </div>
 
