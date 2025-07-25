@@ -19,8 +19,8 @@ export type LaunchInfo = {
 export type LaunchStatus = {
     profile: ProfileId
     stopped?: boolean
-    prevStages?: StageId[]
+    prevStages: StageId[]
     currStage?: StageId
-    prevTasks?: TaskId[]
+    prevTasks: TaskId[]
     currTask?: TaskId
 }

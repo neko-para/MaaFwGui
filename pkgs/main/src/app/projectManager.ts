@@ -42,12 +42,7 @@ export class MfgProjectManager {
             return mfgApp.config.projects?.find(x => x.id === id) ?? null
         }
         globalThis.main.project.loadInterface = async id => {
-            const info = mfgApp.config.projects?.find(x => x.id === id)
-            if (!info) {
-                return null
-            }
-            const content = JSON.parse(await fs.readFile(info.path, 'utf8')) as Interface
-            return content
+            return this.loadInterface(id)
         }
         // globalThis.main.project.loadConfig = id => {
         //     return mfgApp.config.projectConfigs?.[id] ?? null
@@ -60,5 +55,14 @@ export class MfgProjectManager {
         //     }
         //     await mfgApp.saveConfig()
         // }
+    }
+
+    async loadInterface(pid: ProjectId) {
+        const info = mfgApp.config.projects?.find(x => x.id === pid)
+        if (!info) {
+            return null
+        }
+        const content = JSON.parse(await fs.readFile(info.path, 'utf8')) as Interface
+        return content
     }
 }
