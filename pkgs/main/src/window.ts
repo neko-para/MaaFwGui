@@ -1,5 +1,6 @@
 import { BrowserWindow, app } from 'electron'
-import { VUEJS_DEVTOOLS, default as installExtension } from 'electron-devtools-installer'
+// import { VUEJS_DEVTOOLS, default as installExtension } from 'electron-devtools-installer'
+import { VUEJS_DEVTOOLS, installExtension } from 'electron-extension-installer'
 import path from 'path'
 
 export let window: BrowserWindow
@@ -29,9 +30,13 @@ export function createWindow() {
         })
     }
 
-    installExtension(VUEJS_DEVTOOLS).then(
+    installExtension(VUEJS_DEVTOOLS, {
+        loadExtensionOptions: {
+            allowFileAccess: true
+        }
+    }).then(
         ext => {
-            console.log('install done', ext.name)
+            console.log('install done', ext)
         },
         err => {
             console.log('install failed', err)

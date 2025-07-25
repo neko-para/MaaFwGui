@@ -13,14 +13,18 @@ export type LaunchInfo = {
         controller?: maa.ControllerBase
         resource?: maa.ResourceBase
         tasker?: maa.TaskerBase
+
+        postStop?: Promise<boolean>
     }
 }
+
+export type Status = 'running' | 'succeeded' | 'failed'
 
 export type LaunchStatus = {
     profile: ProfileId
     stopped?: boolean
-    prevStages: StageId[]
-    currStage?: StageId
-    prevTasks: TaskId[]
-    currTask?: TaskId
+
+    // not exists means `pending`
+    stages: Record<StageId, Status>
+    tasks: Record<TaskId, Status>
 }

@@ -90,15 +90,10 @@ async function updateName(name: string) {
                     </template>
                     <template v-else>
                         <div v-for="stage in activeProfileInfo.stages" :key="stage.id">
-                            <template v-if="activeLaunchStatus.currStage === stage.id">
-                                <m-stage-launch status="running" :stage="stage"></m-stage-launch>
-                            </template>
-                            <template v-else-if="activeLaunchStatus.prevStages.includes(stage.id)">
-                                <m-stage-launch status="finish" :stage="stage"></m-stage-launch>
-                            </template>
-                            <template v-else>
-                                <m-stage-launch status="pending" :stage="stage"></m-stage-launch>
-                            </template>
+                            <m-stage-launch
+                                :stage="stage"
+                                :launch="activeLaunchStatus"
+                            ></m-stage-launch>
                         </div>
                     </template>
                 </div>
