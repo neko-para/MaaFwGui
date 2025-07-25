@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import { NInput, NScrollbar } from 'naive-ui'
-import { useRouter } from 'vue-router'
 
 import MIconButton from '@/components/MIconButton.vue'
 import MStage from '@/components/MStage.vue'
-import { AddOutlined, CloseOutlined } from '@/icons'
-import { requestDelProfile, requestNewStage, syncProfile, useProfile } from '@/states/profile'
-import { findProject, projectInfo } from '@/states/project'
+import MStageLaunch from '@/components/MStageLaunch.vue'
+import { AddOutlined, CloseOutlined, PauseOutlined, PlayArrowOutlined, StopOutlined } from '@/icons'
+import { useLaunch } from '@/states/launch'
+import {
+    requestDelLaunch,
+    requestDelProfile,
+    requestNewLaunch,
+    requestNewStage,
+    requestStopLaunch,
+    syncProfile,
+    useProfile
+} from '@/states/profile'
 
 const { activeProfileInfo, profileId } = useProfile()
 
-const router = useRouter()
+const { launchId, activeLaunchStatus } = useLaunch(() => profileId.value)
 
 async function updateName(name: string) {
     await window.main.profile.update(profileId.value!, {
@@ -26,6 +34,20 @@ async function updateName(name: string) {
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 基础信息 </span>
                 <div class="flex-1"></div>
+                <m-icon-button v-if="!activeLaunchStatus" @action="requestNewLaunch(profileId)">
+                    <play-arrow-outlined></play-arrow-outlined>
+                </m-icon-button>
+                <template v-else-if="launchId">
+                    <m-icon-button
+                        v-if="!activeLaunchStatus.stopped"
+                        @action="requestStopLaunch(launchId)"
+                    >
+                        <pause-outlined></pause-outlined>
+                    </m-icon-button>
+                    <m-icon-button v-else @action="requestDelLaunch(launchId)">
+                        <stop-outlined></stop-outlined>
+                    </m-icon-button>
+                </template>
                 <m-icon-button @action="requestDelProfile(profileId)">
                     <close-outlined></close-outlined>
                 </m-icon-button>
@@ -44,17 +66,35 @@ async function updateName(name: string) {
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 步骤列表 </span>
                 <div class="flex-1"></div>
-                <m-icon-button @action="requestNewStage(profileId)">
+                <m-icon-button
+                    @action="requestNewStage(profileId)"
+                    :disabled="!!activeLaunchStatus"
+                >
                     <add-outlined></add-outlined>
                 </m-icon-button>
             </div>
             <n-scrollbar>
                 <div class="flex flex-col gap-2">
-                    <m-stage
-                        v-for="stage in activeProfileInfo.stages"
-                        :key="stage.id"
-                        :id="stage.id"
-                    ></m-stage>
+                    <template v-if="!activeLaunchStatus">
+                        <m-stage
+                            v-for="stage in activeProfileInfo.stages"
+                            :key="stage.id"
+                            :id="stage.id"
+                        ></m-stage>
+                    </template>
+                    <template v-else>
+                        <div v-for="stage in activeProfileInfo.stages" :key="stage.id">
+                            <template v-if="activeLaunchStatus.prevStages?.includes(stage.id)">
+                                <m-stage-launch status="finish" :stage="stage"></m-stage-launch>
+                            </template>
+                            <template v-else-if="activeLaunchStatus.currStage === stage.id">
+                                <m-stage-launch status="running" :stage="stage"></m-stage-launch>
+                            </template>
+                            <template v-else>
+                                <m-stage-launch status="pending" :stage="stage"></m-stage-launch>
+                            </template>
+                        </div>
+                    </template>
                 </div>
             </n-scrollbar>
         </div>

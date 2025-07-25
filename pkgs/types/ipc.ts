@@ -1,6 +1,7 @@
 import type * as maa from '@maaxyz/maa-node'
 
-import type { AdbDevice, AdbDeviceId } from './device'
+import type { AdbDevice } from './device'
+import type { LaunchId, LaunchStatus } from './launch'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
 
@@ -61,8 +62,8 @@ export type MainService = {
     'misc.MaaFwVersion': () => string
 
     'profile.query': () => ProfileInfo[]
-    'profile.del': (id: ProfileId) => void
     'profile.new': () => void
+    'profile.del': (id: ProfileId) => void
     'profile.update': (id: ProfileId, cfg: Partial<ProfileInfo>) => void
 
     'stage.new': (id: ProfileId) => void
@@ -73,6 +74,12 @@ export type MainService = {
     'task.del': (id: ProfileId, sid: StageId, tid: TaskId) => void
     'task.update': (id: ProfileId, sid: StageId, tid: TaskId, cfg: Partial<TaskInfo>) => void
 
+    'launch.new': (id: ProfileId) => void
+    'launch.stop': (lid: LaunchId) => void
+    'launch.del': (lid: LaunchId) => void
+    'launch.syncIndex': () => Record<ProfileId, LaunchId>
+    'launch.syncStatus': () => Record<LaunchId, LaunchStatus>
+
     'project.query': () => ProjectInfo[]
     'project.new': () => void
     'project.load': (id: ProjectId) => ProjectInfo | null
@@ -82,7 +89,10 @@ export type MainService = {
     'device.scan': () => AdbDevice[]
 }
 
-export type RendererService = {}
+export type RendererService = {
+    'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
+    'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
+}
 
 type Get<O, K extends string> = K extends keyof O ? O[K] : never
 type MethodCategory<K extends string> = K extends `${infer C}.${infer N}` ? C : never

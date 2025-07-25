@@ -19,6 +19,7 @@ globalThis.main = new Proxy(
                 {
                     set(_, k2: string, func: (...args: any[]) => any) {
                         ipcMain.handle(`main.${k1}.${k2}`, async (event, ...args) => {
+                            console.log(`main.${k1}.${k2}`)
                             return func(...args)
                         })
                         return true
@@ -41,6 +42,7 @@ globalThis.renderer = new Proxy(
                             return new Promise<unknown>(resolve => {
                                 const id = ipcCounter++
                                 ipcResp[id] = resolve
+                                console.log(`renderer.${k1}.${k2}`)
                                 window.webContents.send(`renderer.${k1}.${k2}`, id, ...args)
                             })
                         }

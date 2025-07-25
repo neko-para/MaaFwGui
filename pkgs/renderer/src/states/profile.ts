@@ -1,4 +1,4 @@
-import type { ProfileId, ProfileInfo, StageId, TaskId } from '@mfg/types'
+import type { LaunchId, ProfileId, ProfileInfo, StageId, TaskId } from '@mfg/types'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -36,6 +36,18 @@ export async function requestNewTask(pid: ProfileId, sid: StageId) {
 export async function requestDelTask(pid: ProfileId, sid: StageId, tid: TaskId) {
     await window.main.task.del(pid, sid, tid)
     await syncProfile()
+}
+
+export async function requestNewLaunch(pid: ProfileId) {
+    await window.main.launch.new(pid)
+}
+
+export async function requestStopLaunch(lid: LaunchId) {
+    await window.main.launch.stop(lid)
+}
+
+export async function requestDelLaunch(lid: LaunchId) {
+    await window.main.launch.del(lid)
 }
 
 export function useProfile() {

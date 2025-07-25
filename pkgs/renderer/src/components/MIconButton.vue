@@ -4,6 +4,7 @@ import { ref } from 'vue'
 
 const props = withDefaults(
     defineProps<{
+        disabled?: boolean
         action?: () => Promise<void> | void
         useLoading?: boolean
     }>(),
@@ -30,7 +31,7 @@ async function doAction() {
 </script>
 
 <template>
-    <n-button text @click="doAction" :loading="running" :focusable="false">
+    <n-button text @click="doAction" :loading="running" :focusable="false" :disabled="disabled">
         <template #icon>
             <n-icon size="24">
                 <slot></slot>
