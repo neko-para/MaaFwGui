@@ -46,7 +46,8 @@ async function updateStageName(name: string) {
 
 async function selectProject(project: ProjectId) {
     await window.main.stage.update(profileId.value!, props.id, {
-        project
+        project,
+        tasks: []
     })
     await syncProfile()
 }

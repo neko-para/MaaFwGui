@@ -26,5 +26,5 @@ export type LaunchStatus = {
 
     // not exists means `pending`
     stages: Record<StageId, Status>
-    tasks: Record<TaskId, Status>
+    tasks: Record<TaskId | StageId, Status>
 }

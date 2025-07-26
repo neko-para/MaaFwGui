@@ -129,10 +129,17 @@ export class MfgLaunchManager {
             return false
         }
 
+        launch.status.tasks[stage.id] = 'running'
+        await renderer.launch.updateStatus(launch.id, launch.status)
+
         if (!(await this.prepareInstance(launch, stage, interfaceData))) {
+            launch.status.tasks[stage.id] = 'failed'
             console.log('build instance failed')
             return false
         }
+
+        launch.status.tasks[stage.id] = 'succeeded'
+        await renderer.launch.updateStatus(launch.id, launch.status)
 
         for (const task of stage.tasks ?? []) {
             if (launch.status.stopped) {
