@@ -25,7 +25,7 @@ onMounted(async () => {
         <div
             class="w-screen h-7 pointer-events-none drag-window shrink-0 flex items-center justify-end pr-2"
         >
-            {{ route.path }}
+            <span class="mr-32"> {{ route.path }} </span>
         </div>
         <div class="flex min-h-0">
             <div class="h-full w-75 flex flex-col">

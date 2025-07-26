@@ -8,7 +8,6 @@ import { AddOutlined } from '@/icons'
 import { useLaunch } from '@/states/launch'
 import {
     requestDelLaunch,
-    requestDelProfile,
     requestNewLaunch,
     requestNewStage,
     requestStopLaunch,
@@ -38,6 +37,7 @@ async function updateName(name: string) {
                     v-if="!activeLaunchStatus"
                     @click="requestNewLaunch(profileId)"
                     type="primary"
+                    size="small"
                 >
                     启动
                 </n-button>
@@ -46,25 +46,28 @@ async function updateName(name: string) {
                         v-if="!activeLaunchStatus.stopped"
                         @click="requestStopLaunch(launchId)"
                         type="primary"
+                        size="small"
                     >
                         停止
                     </n-button>
-                    <n-button v-else @click="requestDelLaunch(launchId)" type="primary">
+                    <n-button
+                        v-else
+                        @click="requestDelLaunch(launchId)"
+                        type="primary"
+                        size="small"
+                    >
                         结束
                     </n-button>
                 </template>
             </div>
-            <div class="m-4 form-grid items-center gap-2">
+
+            <div class="form-grid items-center gap-2">
                 <span> 名称 </span>
                 <n-input
                     placeholder="输入新名称"
                     :value="activeProfileInfo.name"
                     @update:value="updateName"
                 ></n-input>
-                <span></span>
-                <div class="flex gap-2">
-                    <n-button @click="requestDelProfile(profileId)"> 删除 </n-button>
-                </div>
             </div>
         </div>
 

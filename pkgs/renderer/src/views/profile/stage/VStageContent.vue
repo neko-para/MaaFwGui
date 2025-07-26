@@ -82,7 +82,7 @@ async function selectOption(
             @close="requestDelTask(profileId, stageId, task.id)"
             size="small"
         >
-            <div class="m-4 form-grid items-center gap-2">
+            <div class="form-grid items-center gap-2">
                 <span> 任务 </span>
                 <n-select
                     placeholder="选择任务"
@@ -104,7 +104,6 @@ async function selectOption(
                     ></n-select>
                 </template>
             </div>
-            {{ task }}
         </n-card>
     </div>
 </template>

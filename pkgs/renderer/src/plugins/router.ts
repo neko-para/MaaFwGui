@@ -1,14 +1,14 @@
 import { type RouteRecordRaw, createMemoryHistory, createRouter } from 'vue-router'
 
-import VAbout from '@/views/VAbout.vue'
 import { Device } from '@/views/device'
 import { Profile } from '@/views/profile'
 import { Stage } from '@/views/profile/stage'
 import { Project } from '@/views/project'
+import { Settings } from '@/views/settings'
 
 const routes = [
     { path: '/', redirect: '/profile' },
-    { path: '/about', components: { side: VAbout, content: VAbout } },
+    { path: '/settings', components: Settings },
     { path: '/profile', components: Profile },
     { path: '/profile/:profile_id', components: Profile },
     { path: '/profile/:profile_id/stage', components: Stage },
