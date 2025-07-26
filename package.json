@@ -23,6 +23,7 @@
         "electron": "^37.2.3",
         "electron-extension-installer": "^2.0.0",
         "esbuild": "^0.25.8",
+        "isomorphic-git": "^1.32.2",
         "naive-ui": "^2.42.0",
         "prettier": "^3.6.2",
         "tailwindcss": "^4.1.11",

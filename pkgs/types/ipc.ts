@@ -3,7 +3,7 @@ import type * as maa from '@maaxyz/maa-node'
 import type { AdbDevice } from './device'
 import type { LaunchId, LaunchStatus } from './launch'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
-import type { ProjectId, ProjectInfo } from './project'
+import type { ManagedProjectInfo, ProjectId, ProjectInfo, ProjectManageType } from './project'
 
 export type SystemInfo = {
     platform: 'win32' | 'linux' | 'darwin'
@@ -81,7 +81,8 @@ export type MainService = {
     'launch.syncStatus': () => Record<LaunchId, LaunchStatus>
 
     'project.query': () => ProjectInfo[]
-    'project.new': () => void
+    'project.new': (type: ProjectManageType, info?: ManagedProjectInfo) => boolean
+    'project.del': (id: ProjectId) => boolean
     'project.load': (id: ProjectId) => ProjectInfo | null
     'project.loadInterface': (id: ProjectId) => Interface | null
 
@@ -92,6 +93,8 @@ export type MainService = {
 export type RendererService = {
     'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
+
+    'project.cloneProgress': (phase: string, loaded: number, total: number) => void
 }
 
 type Get<O, K extends string> = K extends keyof O ? O[K] : never
@@ -132,9 +135,9 @@ export type RendererIpc = {
     }
     renderer: {
         [C in MethodCategory<keyof RendererService>]: {
-            [N in MethodsOfCategory<keyof RendererService, C>]: MaybePromisify<
-                Get<RendererService, `${C}.${N}`>
-            >
+            [N in MethodsOfCategory<keyof RendererService, C>]: (
+                func: MaybePromisify<Get<RendererService, `${C}.${N}`>>
+            ) => () => void
         }
     }
 }

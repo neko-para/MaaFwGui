@@ -2,7 +2,7 @@ declare global {
     interface Window {
         ipc: {
             invoke: (key: string, ...args: unknown[]) => Promise<unknown>
-            on: (key: string, func: (id: number, ...args: unknown[]) => void) => void
+            on: (key: string, func: (id: number, ...args: unknown[]) => void) => () => void
             resp: (id: number, result: unknown) => void
         }
 

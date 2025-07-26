@@ -24,14 +24,15 @@ window.renderer = new Proxy(
             return new Proxy(
                 {},
                 {
-                    set(_, k2: string, func: (...args: any[]) => any) {
-                        window.ipc.on(`renderer.${k1}.${k2}`, async (id, ...args) => {
-                            console.log(`renderer.${k1}.${k2}`)
-                            const result = await func(...args)
-                            console.log(`renderer.${k1}.${k2} fin`)
-                            window.ipc.resp(id, result)
-                        })
-                        return true
+                    get(_, k2: string) {
+                        return (func: (...args: any[]) => any) => {
+                            return window.ipc.on(`renderer.${k1}.${k2}`, async (id, ...args) => {
+                                console.log(`renderer.${k1}.${k2}`)
+                                const result = await func(...args)
+                                console.log(`renderer.${k1}.${k2} fin`)
+                                window.ipc.resp(id, result)
+                            })
+                        }
                     }
                 }
             )

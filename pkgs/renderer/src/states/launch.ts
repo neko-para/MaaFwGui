@@ -26,15 +26,15 @@ export function useLaunch(get: () => ProfileId | undefined) {
 }
 
 export function initLaunchHooks() {
-    window.renderer.launch.updateIndex = async index => {
+    window.renderer.launch.updateIndex(async index => {
         launchIndex.value = index
-    }
+    })
 
-    window.renderer.launch.updateStatus = async (lid, status) => {
+    window.renderer.launch.updateStatus(async (lid, status) => {
         if (status) {
             launchStatus.value[lid] = status
         } else {
             delete launchStatus.value[lid]
         }
-    }
+    })
 }

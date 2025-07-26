@@ -4,9 +4,22 @@ import { useRoute } from 'vue-router'
 
 export const projectInfo = ref<ProjectInfo[]>([])
 
-export async function requestNewProject() {
-    await window.main.project.new()
-    projectInfo.value = await window.main.project.query()
+export async function requestNewExternalProject() {
+    await window.main.project.new('external')
+    await syncProjects()
+}
+
+export async function requestNewGithubRepoProject(url: string) {
+    await window.main.project.new('managed', {
+        type: 'githubRepo',
+        url
+    })
+    await syncProjects()
+}
+
+export async function requestDelProject(pid: ProjectId) {
+    await window.main.project.del(pid)
+    await syncProjects()
 }
 
 export async function syncProjects() {

@@ -5,9 +5,13 @@ const ipc = {
         return ipcRenderer.invoke(key, ...args)
     },
     on: (key: string, func: (id: number, ...args: unknown[]) => void) => {
-        ipcRenderer.on(key, (event, id, ...args) => {
+        const wrapFunc = (event: Electron.IpcRendererEvent, id: number, ...args: unknown[]) => {
             func(id, ...args)
-        })
+        }
+        ipcRenderer.on(key, wrapFunc)
+        return () => {
+            ipcRenderer.off(key, wrapFunc)
+        }
     },
     resp: (id: number, result: unknown) => {
         ipcRenderer.send('main.resp', id, result)
