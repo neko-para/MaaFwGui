@@ -1,5 +1,6 @@
 import type * as maa from '@maaxyz/maa-node'
 
+import type { GlobalConfig } from './config'
 import type { AdbDevice } from './device'
 import type { GithubRepoInfo } from './github'
 import type { LaunchId, LaunchStatus } from './launch'
@@ -58,6 +59,8 @@ export type Interface = {
 export type MainService = {
     'utils.generateId': () => string
     'utils.querySystemInfo': () => SystemInfo
+    'utils.queryConfig': () => GlobalConfig
+    // 'utils.updateConfig': (cfg: Partial<GlobalConfig>) => void
 
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
@@ -90,6 +93,7 @@ export type MainService = {
     'device.query': () => AdbDevice[]
     'device.scan': () => AdbDevice[]
 
+    'github.tryUpdateToken': (token: string) => boolean
     'github.queryRepo': () => GithubRepoInfo[]
     'github.newRepo': (url: string) => boolean
 }

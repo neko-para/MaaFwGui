@@ -67,6 +67,7 @@ async function selectProject(project: ProjectId) {
                     placeholder="输入新名称"
                     :value="stageMeta.name"
                     @update:value="updateStageName"
+                    size="small"
                 ></n-input>
                 <span> 项目 </span>
                 <div class="flex items-center gap-2">
@@ -75,6 +76,7 @@ async function selectProject(project: ProjectId) {
                         :options="projectOptions"
                         :value="stageMeta.project"
                         @update:value="selectProject"
+                        size="small"
                     ></n-select>
                     <m-button
                         @action="

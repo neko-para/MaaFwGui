@@ -1,4 +1,5 @@
 export type * from './ipc'
+export type * from './config'
 export type * from './profile'
 export type * from './project'
 export type * from './device'

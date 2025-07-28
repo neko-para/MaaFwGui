@@ -86,6 +86,7 @@ async function selectDevice(deviceId: AdbDeviceId) {
             :options="resourceOptions"
             :value="stage.resource"
             @update:value="selectResource"
+            size="small"
         ></n-select>
     </div>
     <span> 控制器 </span>
@@ -94,6 +95,7 @@ async function selectDevice(deviceId: AdbDeviceId) {
         :options="controllerOptions"
         :value="stage.controller"
         @update:value="selectController"
+        size="small"
     ></n-select>
     <template v-if="controllerMeta?.type === 'Adb'">
         <span> 设备 </span>
@@ -103,6 +105,7 @@ async function selectDevice(deviceId: AdbDeviceId) {
                 :options="deviceOptions"
                 :value="stage.adb"
                 @update:value="selectDevice"
+                size="small"
             ></n-select>
             <m-button
                 @action="

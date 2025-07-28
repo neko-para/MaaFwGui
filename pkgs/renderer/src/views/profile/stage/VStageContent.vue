@@ -88,6 +88,7 @@ async function selectOption(
                     :options="taskOptions"
                     :value="task.task"
                     @update:value="v => selectTask(task.id, v)"
+                    size="small"
                 ></n-select>
                 <template
                     v-for="option in interfaceData?.task.find(x => x.name === task.task)?.option ??
@@ -100,6 +101,7 @@ async function selectOption(
                         :options="optionOptions(option)"
                         :value="task.option?.[option] ?? null"
                         @update:value="v => selectOption(task.id, option, v, task.option)"
+                        size="small"
                     ></n-select>
                 </template>
             </div>

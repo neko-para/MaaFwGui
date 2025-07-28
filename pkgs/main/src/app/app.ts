@@ -1,8 +1,10 @@
+import { SystemInfo } from '@mfg/types'
 import { app } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
 
 import pkg from '../../../../package.json'
+import { generateId } from '../utils/uuid'
 import { MfgDeviceManager } from './deviceManager'
 import { MfgGithubManager } from './githubManager'
 import { MfgLaunchManager } from './launchManager'
@@ -36,11 +38,30 @@ class MfgApp {
 
         await this.loadConfig()
 
+        this.initUtils()
+
         await this.profileManager.init()
         await this.projectManager.init()
         await this.deviceManager.init()
         await this.launchManager.init()
         await this.githubManager.init()
+    }
+
+    initUtils() {
+        globalThis.main.utils.generateId = generateId
+
+        globalThis.main.utils.querySystemInfo = () => ({
+            platform: process.platform as SystemInfo['platform']
+        })
+
+        globalThis.main.utils.queryConfig = () => {
+            return this.config.config ?? {}
+        }
+        // globalThis.main.utils.updateConfig = async cfg => {
+        //     this.config.config = this.config.config ?? {}
+        //     Object.assign(this.config.config, cfg)
+        //     await this.saveConfig()
+        // }
     }
 
     get configPath() {

@@ -9,3 +9,4 @@ export type ProjectInfo = {
 
     type: ProjectManageType
     path: string
+}

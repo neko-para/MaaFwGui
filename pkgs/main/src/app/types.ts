@@ -1,12 +1,12 @@
-import type { AdbDevice, GithubRepoInfo, ProfileInfo, ProjectInfo } from '@mfg/types'
+import type { AdbDevice, GithubRepoInfo, GlobalConfig, ProfileInfo, ProjectInfo } from '@mfg/types'
 
 export type AppConfig = {
+    config?: GlobalConfig
+
     profiles?: ProfileInfo[]
     projects?: ProjectInfo[]
     devices?: AdbDevice[]
     github?: {
-        authToken?: string
-
         repos?: GithubRepoInfo[]
     }
 }

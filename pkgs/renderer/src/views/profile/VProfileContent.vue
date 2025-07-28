@@ -66,6 +66,7 @@ async function updateName(name: string) {
                     placeholder="输入新名称"
                     :value="activeProfileInfo.name"
                     @update:value="updateName"
+                    size="small"
                 ></n-input>
             </div>
         </div>

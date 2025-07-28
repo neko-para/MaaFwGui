@@ -73,12 +73,17 @@ async function newProject() {
     <n-modal :show="showDlg" @update:show="() => waitDlg(false)">
         <n-card title="添加项目" class="max-w-2/3" role="dialog">
             <div class="flex flex-col gap-2">
-                <n-select v-model:value="projectType" :options="projectTypeOptions"> </n-select>
+                <n-select
+                    v-model:value="projectType"
+                    :options="projectTypeOptions"
+                    size="small"
+                ></n-select>
 
                 <n-input
                     v-if="projectType === 'githubRelease'"
                     placeholder="https://github.com/your/repo"
                     v-model:value="githubUrl"
+                    size="small"
                 ></n-input>
 
                 <span v-if="progress.length"> {{ progress }} </span>
