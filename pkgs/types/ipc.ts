@@ -2,7 +2,7 @@ import type * as maa from '@maaxyz/maa-node'
 
 import type { GlobalConfig } from './config'
 import type { AdbDevice } from './device'
-import type { GithubRepoInfo } from './github'
+import type { GithubRepoId, GithubRepoInfo } from './github'
 import type { LaunchId, LaunchStatus } from './launch'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
@@ -96,6 +96,7 @@ export type MainService = {
     'github.tryUpdateToken': (token: string) => boolean
     'github.queryRepo': () => GithubRepoInfo[]
     'github.newRepo': (url: string) => boolean
+    'github.delRepo': (id: GithubRepoId) => boolean
 }
 
 export type RendererService = {

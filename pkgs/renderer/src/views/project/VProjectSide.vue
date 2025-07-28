@@ -108,6 +108,17 @@ async function newProject() {
         "
     >
         <template #actions>
+            <m-button
+                @action="
+                    () => {
+                        router.push({
+                            path: '/github-repo'
+                        })
+                    }
+                "
+            >
+                GH
+            </m-button>
             <m-button :action="newProject" use-loading> 导入 </m-button>
         </template>
 

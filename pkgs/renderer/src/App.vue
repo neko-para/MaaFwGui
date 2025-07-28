@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 
 import { syncDevices } from './states/device'
+import { syncRepos } from './states/github'
 import { syncProfile } from './states/profile'
 import { syncProjects } from './states/project'
 
@@ -17,6 +18,7 @@ onMounted(async () => {
     syncProfile()
     syncProjects()
     syncDevices()
+    syncRepos()
 })
 </script>
 
@@ -28,7 +30,7 @@ onMounted(async () => {
             <span class="mr-32"> {{ route.path }} </span>
         </div>
         <div class="flex min-h-0">
-            <div class="h-full w-75 flex flex-col">
+            <div class="h-full w-80 flex flex-col">
                 <router-view name="side"></router-view>
             </div>
             <div class="h-full flex-1 flex flex-col">
