@@ -34,8 +34,11 @@ async function watchMain(server, preloadOk) {
             {
                 name: 'electron-main-watcher',
                 setup(ctx) {
+                    ctx.onStart(() => {
+                        console.log('main start build')
+                    })
                     ctx.onEnd(async () => {
-                        console.log('main rebuilt')
+                        console.log('main end build')
                         if (electronProcess) {
                             reloading = true
                             electronProcess.kill('SIGINT')
@@ -45,9 +48,14 @@ async function watchMain(server, preloadOk) {
                             await preloadOk
                             preloadOk = null
                         }
+                        if (electronProcess) {
+                            await new Promise(resolve => {
+                                electronProcess.on('exit', resolve)
+                            })
+                        }
                         electronProcess = spawn(
                             electron,
-                            ['.', '--inspect', '--remote-debugging-port=9876'],
+                            ['.', '--inspect=9875', '--remote-debugging-port=9876'],
                             {
                                 stdio: 'inherit',
                                 env

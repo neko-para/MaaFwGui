@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Attach Main",
+            "type": "node",
+            "request": "attach",
+            "port": 9875,
+            "skipFiles": ["<node_internals>/**"],
+            "restart": true
+        },
+        {
+            "name": "Attach Renderer",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9876,
+            "skipFiles": ["<node_internals>/**"],
+            "url": "http://127.0.0.1:5173/",
+            "webRoot": "${workspaceFolder}",
+            "restart": true
+        }
+    ]
+}
