@@ -1,6 +1,7 @@
 import { type RouteRecordRaw, createMemoryHistory, createRouter } from 'vue-router'
 
 import { Device } from '@/views/device'
+import { GithubRepo } from '@/views/github'
 import { Profile } from '@/views/profile'
 import { Stage } from '@/views/profile/stage'
 import { Project } from '@/views/project'
@@ -16,7 +17,9 @@ const routes = [
     { path: '/project', components: Project },
     { path: '/project/:project_id', components: Project },
     { path: '/device', components: Device },
-    { path: '/device/:device_id', components: Device }
+    { path: '/device/:device_id', components: Device },
+    { path: '/github-repo', components: GithubRepo },
+    { path: '/github-repo/:github_repo_id', components: GithubRepo }
 ] satisfies RouteRecordRaw[]
 
 export default createRouter({

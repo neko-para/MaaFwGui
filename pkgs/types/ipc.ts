@@ -1,9 +1,10 @@
 import type * as maa from '@maaxyz/maa-node'
 
 import type { AdbDevice } from './device'
+import type { GithubRepoInfo } from './github'
 import type { LaunchId, LaunchStatus } from './launch'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
-import type { ManagedProjectInfo, ProjectId, ProjectInfo, ProjectManageType } from './project'
+import type { ProjectId, ProjectInfo } from './project'
 
 export type SystemInfo = {
     platform: 'win32' | 'linux' | 'darwin'
@@ -81,13 +82,16 @@ export type MainService = {
     'launch.syncStatus': () => Record<LaunchId, LaunchStatus>
 
     'project.query': () => ProjectInfo[]
-    'project.new': (type: ProjectManageType, info?: ManagedProjectInfo) => boolean
+    'project.newExternal': () => boolean
     'project.del': (id: ProjectId) => boolean
     'project.load': (id: ProjectId) => ProjectInfo | null
     'project.loadInterface': (id: ProjectId) => Interface | null
 
     'device.query': () => AdbDevice[]
     'device.scan': () => AdbDevice[]
+
+    'github.queryRepo': () => GithubRepoInfo[]
+    'github.newRepo': (url: string) => boolean
 }
 
 export type RendererService = {

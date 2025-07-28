@@ -5,15 +5,14 @@ import { useRoute } from 'vue-router'
 export const projectInfo = ref<ProjectInfo[]>([])
 
 export async function requestNewExternalProject() {
-    await window.main.project.new('external')
+    await window.main.project.newExternal()
     await syncProjects()
 }
 
-export async function requestNewGithubRepoProject(url: string) {
-    await window.main.project.new('managed', {
-        type: 'githubRepo',
-        url
-    })
+export async function requestNewGithubReleaseProject(url: string) {
+    // await window.main.project.new('githubRelease', {
+    //     url
+    // })
     await syncProjects()
 }
 

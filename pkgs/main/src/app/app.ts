@@ -4,6 +4,7 @@ import path from 'path'
 
 import pkg from '../../../../package.json'
 import { MfgDeviceManager } from './deviceManager'
+import { MfgGithubManager } from './githubManager'
 import { MfgLaunchManager } from './launchManager'
 import { MfgProfileManager } from './profileManager'
 import { MfgProjectManager } from './projectManager'
@@ -17,6 +18,7 @@ class MfgApp {
     projectManager: MfgProjectManager
     deviceManager: MfgDeviceManager
     launchManager: MfgLaunchManager
+    githubManager: MfgGithubManager
 
     constructor(root: string) {
         this.root = root
@@ -26,6 +28,7 @@ class MfgApp {
         this.projectManager = new MfgProjectManager()
         this.deviceManager = new MfgDeviceManager()
         this.launchManager = new MfgLaunchManager()
+        this.githubManager = new MfgGithubManager()
     }
 
     async init() {
@@ -37,6 +40,7 @@ class MfgApp {
         await this.projectManager.init()
         await this.deviceManager.init()
         await this.launchManager.init()
+        await this.githubManager.init()
     }
 
     get configPath() {
