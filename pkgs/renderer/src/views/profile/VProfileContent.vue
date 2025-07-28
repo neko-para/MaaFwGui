@@ -74,7 +74,11 @@ async function updateName(name: string) {
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 步骤列表 </span>
                 <div class="flex-1"></div>
-                <m-button @action="requestNewStage(profileId)" :disabled="!!activeLaunchStatus">
+                <m-button
+                    :action="() => requestNewStage(profileId!)"
+                    :disabled="!!activeLaunchStatus"
+                    use-loading
+                >
                     新建步骤
                 </m-button>
             </div>

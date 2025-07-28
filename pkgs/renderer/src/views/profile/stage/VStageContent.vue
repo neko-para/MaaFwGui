@@ -68,7 +68,9 @@ async function selectOption(
         <div class="flex gap-2">
             <span class="text-xl"> 任务列表 </span>
             <div class="flex-1"></div>
-            <m-button @action="requestNewTask(profileId, stageId)"> 新建 </m-button>
+            <m-button :action="() => requestNewTask(profileId!, stageId!)" use-loading>
+                新建
+            </m-button>
         </div>
 
         <n-card

@@ -46,7 +46,7 @@ const { profileId } = useProfile()
         </template>
 
         <template #itemActions="{ item: profile }">
-            <m-button @action="requestDelProfile(profile.id)"> 删除 </m-button>
+            <m-button :action="() => requestDelProfile(profile.id)" use-loading> 删除 </m-button>
         </template>
     </l-generic-side>
 </template>
