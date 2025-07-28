@@ -97,6 +97,7 @@ export type MainService = {
     'github.queryRepo': () => GithubRepoInfo[]
     'github.newRepo': (url: string) => boolean
     'github.delRepo': (id: GithubRepoId) => boolean
+    'github.checkRepoUpdate': (id: GithubRepoId) => boolean
 }
 
 export type RendererService = {

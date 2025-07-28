@@ -18,6 +18,11 @@ export async function requestDelRepo(id: GithubRepoId) {
     await syncRepos()
 }
 
+export async function requestCheckRepoUpdate(id: GithubRepoId) {
+    await window.main.github.checkRepoUpdate(id)
+    await syncRepos()
+}
+
 export function useGithubRepo() {
     const route = useRoute()
 

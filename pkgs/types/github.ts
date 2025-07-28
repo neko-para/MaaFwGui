@@ -1,3 +1,5 @@
+import type { ProjectId } from './project'
+
 export type GithubRepoId = string & { __brand: 'GithubRepoId' }
 
 export type GithubRepoInfo = {
@@ -6,4 +8,14 @@ export type GithubRepoInfo = {
     name: string
 
     url: string
+    owner: string
+    repo: string
+
+    expose?: {
+        project: ProjectId
+        version: string
+    }
+    update?: {
+        version: string
+    }
 }

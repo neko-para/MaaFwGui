@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useGithubRepo } from '@/states/github'
+import MButton from '@/components/MButton.vue'
+import { requestCheckRepoUpdate, useGithubRepo } from '@/states/github'
 
 const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
 </script>
@@ -15,6 +16,16 @@ const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
             <span> {{ activeGithubRepoInfo.name }} </span>
             <span> 地址 </span>
             <span> {{ activeGithubRepoInfo.url }} </span>
+            <template v-if="activeGithubRepoInfo.update">
+                <span> 最新版本 </span>
+                <span> {{ activeGithubRepoInfo.update?.version }} </span>
+            </template>
+            <span></span>
+            <div class="flex items-center gap-2">
+                <m-button :action="async () => requestCheckRepoUpdate(githubRepoId!)" use-loading>
+                    检查更新
+                </m-button>
+            </div>
         </div>
     </div>
 </template>
