@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-import MIconButton from '@/components/MIconButton.vue'
-import { LinkOutlined, RefreshOutlined } from '@/icons'
+import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
 import { deviceInfo, requestScanDevices } from '@/states/device'
 
@@ -23,9 +22,7 @@ const router = useRouter()
         "
     >
         <template #actions>
-            <m-icon-button :action="requestScanDevices" use-loading>
-                <refresh-outlined />
-            </m-icon-button>
+            <m-button :action="requestScanDevices" use-loading> 扫描 </m-button>
         </template>
 
         <template #itemEntry="{ item: dev }">
@@ -35,10 +32,6 @@ const router = useRouter()
             </div>
         </template>
 
-        <template #itemActions>
-            <m-icon-button>
-                <link-outlined />
-            </m-icon-button>
-        </template>
+        <template #itemActions> </template>
     </l-generic-side>
 </template>

@@ -5,8 +5,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import MIconButton from '@/components/MIconButton.vue'
-import { AddOutlined, NavigateBeforeOutlined } from '@/icons'
+import MButton from '@/components/MButton.vue'
 import { requestDelTask, requestNewTask, syncProfile, useProfile } from '@/states/profile'
 import { useInterface } from '@/states/project'
 
@@ -69,9 +68,7 @@ async function selectOption(
         <div class="flex gap-2">
             <span class="text-xl"> 任务列表 </span>
             <div class="flex-1"></div>
-            <m-icon-button @action="requestNewTask(profileId, stageId)">
-                <add-outlined></add-outlined>
-            </m-icon-button>
+            <m-button @action="requestNewTask(profileId, stageId)"> 新建 </m-button>
         </div>
 
         <n-card

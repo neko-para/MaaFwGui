@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NIcon } from 'naive-ui'
+import { NButton } from 'naive-ui'
 import { ref } from 'vue'
 
 const props = withDefaults(
@@ -31,11 +31,13 @@ async function doAction() {
 </script>
 
 <template>
-    <n-button text @click="doAction" :loading="running" :focusable="false" :disabled="disabled">
-        <template #icon>
-            <n-icon size="24">
-                <slot></slot>
-            </n-icon>
-        </template>
+    <n-button
+        @click="doAction"
+        :loading="running"
+        :focusable="false"
+        :disabled="disabled"
+        size="small"
+    >
+        <slot></slot>
     </n-button>
 </template>

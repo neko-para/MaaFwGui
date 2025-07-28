@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-import MIconButton from '@/components/MIconButton.vue'
-import { NavigateBeforeOutlined } from '@/icons'
+import MButton from '@/components/MButton.vue'
 
 const router = useRouter()
 </script>
 
 <template>
-    <m-icon-button @action="router.back()">
-        <navigate-before-outlined></navigate-before-outlined>
-    </m-icon-button>
+    <m-button @action="router.back()"> 返回 </m-button>
 </template>

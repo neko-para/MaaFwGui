@@ -4,9 +4,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import MGithubSvg from '@/components/MGithubSvg.vue'
-import MIconButton from '@/components/MIconButton.vue'
-import { AddOutlined, CloseOutlined } from '@/icons'
+import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
 import {
     projectInfo,
@@ -105,12 +103,7 @@ async function newProject() {
         "
     >
         <template #actions>
-            <m-icon-button>
-                <m-github-svg></m-github-svg>
-            </m-icon-button>
-            <m-icon-button :action="newProject" use-loading>
-                <add-outlined></add-outlined>
-            </m-icon-button>
+            <m-button :action="newProject" use-loading> 导入 </m-button>
         </template>
 
         <template #itemEntry="{ item: project }">
@@ -120,9 +113,9 @@ async function newProject() {
         </template>
 
         <template #itemActions="{ item: project }">
-            <m-icon-button :action="async () => requestDelProject(project.id)" use-loading>
-                <close-outlined></close-outlined>
-            </m-icon-button>
+            <m-button :action="async () => requestDelProject(project.id)" use-loading>
+                删除
+            </m-button>
         </template>
     </l-generic-side>
 </template>

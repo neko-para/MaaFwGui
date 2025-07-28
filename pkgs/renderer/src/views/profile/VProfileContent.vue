@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { NButton, NInput, NScrollbar } from 'naive-ui'
 
-import MIconButton from '@/components/MIconButton.vue'
+import MButton from '@/components/MButton.vue'
 import MStage from '@/components/MStage.vue'
 import MStageLaunch from '@/components/MStageLaunch.vue'
-import { AddOutlined } from '@/icons'
 import { useLaunch } from '@/states/launch'
 import {
     requestDelLaunch,
@@ -75,12 +74,9 @@ async function updateName(name: string) {
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 步骤列表 </span>
                 <div class="flex-1"></div>
-                <m-icon-button
-                    @action="requestNewStage(profileId)"
-                    :disabled="!!activeLaunchStatus"
-                >
-                    <add-outlined></add-outlined>
-                </m-icon-button>
+                <m-button @action="requestNewStage(profileId)" :disabled="!!activeLaunchStatus">
+                    新建步骤
+                </m-button>
             </div>
             <n-scrollbar>
                 <div class="flex flex-col gap-2">

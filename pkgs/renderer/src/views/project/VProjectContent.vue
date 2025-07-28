@@ -16,8 +16,6 @@ const { interfaceData } = useInterface(() => projectId.value)
             <span> {{ activeProjectInfo.name }} </span>
             <span> 路径 </span>
             <span> {{ activeProjectInfo.path }} </span>
-            <span> 目录 </span>
-            <span> {{ activeProjectInfo.folder }} </span>
             <span> 类型 </span>
             <span> {{ activeProjectInfo.type === 'external' ? '外部' : '托管' }} </span>
         </div>

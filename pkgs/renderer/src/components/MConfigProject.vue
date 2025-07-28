@@ -5,8 +5,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import MIconButton from '@/components/MIconButton.vue'
-import { SettingsOutlined, SmartphoneOutlined } from '@/icons'
+import MButton from '@/components/MButton.vue'
 import { deviceInfo } from '@/states/device'
 import { syncProfile, useProfile } from '@/states/profile'
 import { useInterface } from '@/states/project'
@@ -105,29 +104,29 @@ async function selectDevice(deviceId: AdbDeviceId) {
                 :value="stage.adb"
                 @update:value="selectDevice"
             ></n-select>
-            <m-icon-button
+            <m-button
                 @action="
                     router.push({
                         path: `/device`
                     })
                 "
             >
-                <smartphone-outlined></smartphone-outlined>
-            </m-icon-button>
+                管理设备
+            </m-button>
         </div>
     </template>
     <span> 任务 </span>
     <div class="flex items-center gap-2">
         <span> 已配置{{ stage.tasks?.length ?? 0 }}个任务 </span>
         <div class="flex-1"></div>
-        <m-icon-button
+        <m-button
             @action="
                 router.push({
                     path: `/profile/${profileId}/stage/${stage.id}`
                 })
             "
         >
-            <settings-outlined></settings-outlined>
-        </m-icon-button>
+            配置任务
+        </m-button>
     </div>
 </template>

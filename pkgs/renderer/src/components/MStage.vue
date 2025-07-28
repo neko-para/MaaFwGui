@@ -5,12 +5,11 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { TopicOutlined } from '@/icons'
 import { requestDelStage, syncProfile, useProfile } from '@/states/profile'
 import { projectInfo } from '@/states/project'
 
+import MButton from './MButton.vue'
 import MConfigProject from './MConfigProject.vue'
-import MIconButton from './MIconButton.vue'
 
 const router = useRouter()
 
@@ -77,15 +76,15 @@ async function selectProject(project: ProjectId) {
                         :value="stageMeta.project"
                         @update:value="selectProject"
                     ></n-select>
-                    <m-icon-button
+                    <m-button
                         @action="
                             router.push({
                                 path: `/project`
                             })
                         "
                     >
-                        <topic-outlined></topic-outlined>
-                    </m-icon-button>
+                        管理项目
+                    </m-button>
                 </div>
                 <template v-if="projectMeta">
                     <m-config-project :stage="stageMeta" :project="projectMeta"></m-config-project>

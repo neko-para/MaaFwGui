@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-import MIconButton from '@/components/MIconButton.vue'
-import { AddOutlined, CloseOutlined, SettingsOutlined } from '@/icons'
+import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
 import { profileInfo, requestDelProfile, requestNewProfile, useProfile } from '@/states/profile'
 
@@ -25,18 +24,16 @@ const { profileId } = useProfile()
         "
     >
         <template #actions>
-            <m-icon-button
+            <m-button
                 @action="
                     router.push({
                         path: '/settings'
                     })
                 "
             >
-                <settings-outlined></settings-outlined>
-            </m-icon-button>
-            <m-icon-button :action="requestNewProfile" use-loading>
-                <add-outlined></add-outlined>
-            </m-icon-button>
+                设置
+            </m-button>
+            <m-button :action="requestNewProfile" use-loading> 新建 </m-button>
         </template>
 
         <template #itemEntry="{ item: profile }">
@@ -49,9 +46,7 @@ const { profileId } = useProfile()
         </template>
 
         <template #itemActions="{ item: profile }">
-            <m-icon-button @action="requestDelProfile(profile.id)">
-                <close-outlined></close-outlined>
-            </m-icon-button>
+            <m-button @action="requestDelProfile(profile.id)"> 删除 </m-button>
         </template>
     </l-generic-side>
 </template>
