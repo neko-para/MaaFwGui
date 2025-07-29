@@ -12,7 +12,7 @@ export const themeOverride = computed<GlobalThemeOverrides>(() => {
             // fontFamilyMono: getVar('--vscode-editor-font-family'),
             // borderColor: getVar('--vscode-editorWidget-border'),
             // borderRadius: '0',
-            cardColor: 'transparent',
+            cardColor: '#F7F7F7',
             inputColor: 'transparent',
             inputColorDisabled: 'transparent',
             popoverColor: '#F0F0F0',
