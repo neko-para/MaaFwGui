@@ -4,6 +4,7 @@ import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { Octokit } from 'octokit'
 import * as path from 'path'
+import unzipper from 'unzipper'
 
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
@@ -150,7 +151,6 @@ export class MfgGithubManager {
                         archNames[process.arch as KnownArch].test(x.name)
                     )
                 })
-                console.log(assets)
                 if (assets.length !== 1) {
                     // TODO: ask user to choose
                     console.log(assets.map(x => x.name))
@@ -189,6 +189,11 @@ export class MfgGithubManager {
                         await tar.x({
                             file: assetPath,
                             cwd: path.join(rootFolder, 'tree')
+                        })
+                    } else if (asset.name.endsWith('.zip')) {
+                        const file = await unzipper.Open.file(assetPath)
+                        await file.extract({
+                            path: path.join(rootFolder, 'tree')
                         })
                     } else {
                         console.log('unknown format', asset.name)

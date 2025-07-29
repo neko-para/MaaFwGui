@@ -27,7 +27,7 @@ async function watchMain(server, preloadOk) {
         entryPoints: ['pkgs/main/src/main.ts'],
         platform: 'node',
         bundle: true,
-        external: ['electron', '@maaxyz/maa-node'],
+        external: ['electron', '@maaxyz/maa-node', '@aws-sdk/client-s3'],
         outdir: './dist/main',
         sourcemap: true,
         plugins: [
