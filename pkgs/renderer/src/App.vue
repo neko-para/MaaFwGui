@@ -32,8 +32,10 @@ onMounted(async () => {
             >
                 <span class="mr-32"> {{ route.path }} </span>
             </div>
-            <div class="flex min-h-0">
-                <div class="h-full w-80 flex flex-col">
+            <div class="flex flex-1 min-h-0">
+                <div
+                    class="h-full w-80 flex flex-col bg-gradient-to-b from-transparent via-gray-300 to-transparent bg-[length:1px_100%] bg-[position:right_center] bg-no-repeat"
+                >
                     <router-view name="side"></router-view>
                 </div>
                 <div class="h-full flex-1 flex flex-col">
