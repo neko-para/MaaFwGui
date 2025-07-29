@@ -37,11 +37,10 @@ const { profileId } = useProfile()
         </template>
 
         <template #itemEntry="{ item: profile }">
-            <span class="text-xl">
-                {{
-                    (profile.name === '' ? '<未命名方案>' : profile.name) +
-                    (profile.id === profileId ? ' *' : '')
-                }}
+            <span
+                :class="`text-base ${profile.id === profileId ? 'font-bold text-[#36ad6a]' : ''}`"
+            >
+                {{ profile.name === '' ? '<未命名方案>' : profile.name }}
             </span>
         </template>
 
