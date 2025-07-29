@@ -38,7 +38,7 @@ const { profileId } = useProfile()
 
         <template #itemEntry="{ item: profile }">
             <span
-                :class="`text-base ${profile.id === profileId ? 'font-bold text-[#36ad6a]' : ''}`"
+                :class="`text-base w-32 truncate text-left ${profile.id === profileId ? 'font-bold text-[#36ad6a]' : ''}`"
             >
                 {{ profile.name === '' ? '<未命名方案>' : profile.name }}
             </span>
