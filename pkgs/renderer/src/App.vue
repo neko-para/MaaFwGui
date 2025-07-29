@@ -37,7 +37,11 @@ onMounted(async () => {
                     <router-view name="side"></router-view>
                 </div>
                 <div class="h-full flex-1 flex flex-col">
-                    <router-view name="content"></router-view>
+                    <router-view name="content" v-slot="{ Component }">
+                        <keep-alive>
+                            <component :is="Component" :key="route.fullPath" />
+                        </keep-alive>
+                    </router-view>
                 </div>
             </div>
         </div>
