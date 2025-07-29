@@ -24,19 +24,21 @@ function itemKey(item: Item) {
 </script>
 
 <template>
-    <div class="m-4 flex flex-col gap-2">
+    <div class="p-4 h-full flex flex-col gap-2">
         <div class="flex gap-2">
             <span class="text-xl"> {{ title }} </span>
             <div class="flex-1"></div>
             <m-nav-back-button v-if="showBack"></m-nav-back-button>
             <slot name="actions"></slot>
         </div>
-        <div v-for="item in items" :key="itemKey(item)" class="flex items-center gap-2">
-            <m-entry @click="emits('click', item)">
-                <slot name="itemEntry" :item="item"></slot>
-            </m-entry>
-            <div class="flex-1"></div>
-            <slot name="itemActions" :item="item"></slot>
+        <div class="flex flex-col gap-2 flex-1 overflow-y-auto">
+            <div v-for="item in items" :key="itemKey(item)" class="flex items-center gap-2">
+                <m-entry @click="emits('click', item)">
+                    <slot name="itemEntry" :item="item"></slot>
+                </m-entry>
+                <div class="flex-1"></div>
+                <slot name="itemActions" :item="item"></slot>
+            </div>
         </div>
     </div>
 </template>
