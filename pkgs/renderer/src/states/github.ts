@@ -25,8 +25,8 @@ export async function requestCheckRepoUpdate(id: GithubRepoId) {
     await syncRepos()
 }
 
-export async function requestExportRepo(id: GithubRepoId) {
-    await window.main.github.exportRepo(id)
+export async function requestExportRepo(id: GithubRepoId, tag: string) {
+    await window.main.github.exportRepo(id, tag)
     await syncRepos()
     await syncProjects()
 }

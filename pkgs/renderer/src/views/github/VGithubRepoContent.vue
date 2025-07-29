@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { nextTick } from 'vue'
+import { NPopselect } from 'naive-ui'
+import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
+import { nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MButton from '@/components/MButton.vue'
@@ -8,6 +10,14 @@ import { requestCheckRepoUpdate, requestExportRepo, useGithubRepo } from '@/stat
 const router = useRouter()
 
 const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
+
+const checkoutProcessing = ref(false)
+
+async function checkoutVersion(ver: string) {
+    checkoutProcessing.value = true
+    await requestExportRepo(githubRepoId.value!, ver)
+    checkoutProcessing.value = false
+}
 </script>
 
 <template>
@@ -41,9 +51,9 @@ const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
                     </m-button>
                 </div>
             </template>
-            <template v-if="activeGithubRepoInfo.update">
+            <template v-if="activeGithubRepoInfo.meta">
                 <span> 最新版本 </span>
-                <span> {{ activeGithubRepoInfo.update?.version }} </span>
+                <span> {{ activeGithubRepoInfo.meta.latest }} </span>
             </template>
             <span></span>
             <div class="flex items-center gap-2">
@@ -51,12 +61,39 @@ const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
                     检查更新
                 </m-button>
                 <m-button
-                    v-if="!activeGithubRepoInfo.expose && activeGithubRepoInfo.update"
-                    :action="async () => requestExportRepo(githubRepoId!)"
+                    v-if="!activeGithubRepoInfo.expose && activeGithubRepoInfo.meta"
+                    :action="
+                        async () =>
+                            requestExportRepo(githubRepoId!, activeGithubRepoInfo!.meta!.latest)
+                    "
                     use-loading
                 >
                     导出项目
                 </m-button>
+                <n-popselect
+                    v-if="activeGithubRepoInfo.meta"
+                    trigger="hover"
+                    :options="
+                        activeGithubRepoInfo.meta.versions.map(ver => {
+                            const isCurr = ver === activeGithubRepoInfo!.expose?.version
+                            const isLatest = ver === activeGithubRepoInfo!.meta!.latest
+                            return {
+                                value: ver,
+                                label: ver + (isCurr ? ' 当前' : '') + (isLatest ? ' 最新' : ''),
+                                disabled: isCurr
+                            } satisfies SelectMixedOption
+                        })
+                    "
+                    @update:value="checkoutVersion"
+                    scrollable
+                >
+                    <m-button
+                        @action="checkoutVersion(activeGithubRepoInfo.meta.latest)"
+                        :loading="checkoutProcessing"
+                    >
+                        导出指定版本
+                    </m-button>
+                </n-popselect>
             </div>
         </div>
     </div>

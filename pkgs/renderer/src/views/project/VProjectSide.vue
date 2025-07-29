@@ -10,7 +10,6 @@ import {
     projectInfo,
     requestDelProject,
     requestNewExternalProject,
-    requestNewGithubReleaseProject,
     useProject
 } from '@/states/project'
 

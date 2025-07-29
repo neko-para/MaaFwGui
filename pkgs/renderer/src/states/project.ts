@@ -2,6 +2,8 @@ import type { Interface, ProjectId, ProjectInfo } from '@mfg/types'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { syncRepos } from './github'
+
 export const projectInfo = ref<ProjectInfo[]>([])
 
 export async function requestNewExternalProject() {
@@ -9,16 +11,10 @@ export async function requestNewExternalProject() {
     await syncProjects()
 }
 
-export async function requestNewGithubReleaseProject(url: string) {
-    // await window.main.project.new('githubRelease', {
-    //     url
-    // })
-    await syncProjects()
-}
-
 export async function requestDelProject(pid: ProjectId) {
     await window.main.project.del(pid)
     await syncProjects()
+    await syncRepos()
 }
 
 export async function syncProjects() {

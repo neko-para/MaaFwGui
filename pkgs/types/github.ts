@@ -15,7 +15,8 @@ export type GithubRepoInfo = {
         project: ProjectId
         version: string
     }
-    update?: {
-        version: string
+    meta?: {
+        versions: string[]
+        latest: string
     }
 }

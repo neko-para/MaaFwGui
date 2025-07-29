@@ -8,6 +8,7 @@ import {
     StageInfo,
     TaskInfo
 } from '@mfg/types'
+import * as child_process from 'child_process'
 import * as path from 'path'
 
 import { generateId } from '../utils/uuid'
@@ -166,10 +167,17 @@ export class MfgLaunchManager {
         // 必须等待由于post_stop产生的任务完成，否则其回调会和这里的destroy死锁
         await launch.instance.postStop
 
+        launch.instance.agent?.kill()
+        launch.instance.agent = undefined
+
         launch.instance.tasker?.destroy()
         launch.instance.tasker = undefined
         launch.instance.controller?.destroy()
         launch.instance.controller = undefined
+
+        launch.instance.client?.destroy()
+        launch.instance.client = undefined
+
         launch.instance.resource?.destroy()
         launch.instance.resource = undefined
     }
@@ -223,11 +231,50 @@ export class MfgLaunchManager {
         const projectDir = path.dirname(proj.path)
 
         launch.instance.resource = new maa.Resource()
-        for (const resp of resourceMeta.path) {
+        let resPaths = resourceMeta.path
+        if (typeof resPaths === 'string') {
+            resPaths = [resPaths]
+        }
+        resPaths = resPaths.map(p => p.replaceAll('{PROJECT_DIR}', projectDir))
+
+        for (const resp of resPaths) {
+            if (!(await launch.instance.resource.post_bundle(resp).wait().succeeded)) {
+                return false
+            }
+        }
+
+        if (interfaceData.agent && interfaceData.agent.child_exec) {
+            launch.instance.client = new maa.AgentClient()
+            const identifier = launch.instance.client.identifier ?? 'vsc-no-identifier'
+
+            try {
+                launch.instance.agent = child_process.spawn(
+                    interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir),
+                    (interfaceData.agent.child_args ?? [])
+                        .map(arg => arg.replaceAll('{PROJECT_DIR}', projectDir))
+                        .concat([identifier]),
+                    {
+                        stdio: 'pipe',
+                        shell: true,
+                        cwd: projectDir,
+                        env: {
+                            MFG_AGENT: '1',
+                            MFG_AGENT_ROOT: projectDir,
+                            MFG_AGENT_RESOURCE: resPaths.join(path.delimiter)
+                        }
+                    }
+                )
+            } catch {
+                return false
+            }
+
+            launch.instance.client.bind_resource(launch.instance.resource)
+
             if (
-                !(await launch.instance.resource
-                    .post_bundle(resp.replaceAll('{PROJECT_DIR}', projectDir))
-                    .wait().succeeded)
+                !(await launch.instance.client.connect().then(
+                    () => true,
+                    () => false
+                ))
             ) {
                 return false
             }

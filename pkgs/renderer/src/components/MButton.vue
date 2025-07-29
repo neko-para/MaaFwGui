@@ -7,6 +7,7 @@ const props = withDefaults(
         disabled?: boolean
         action?: () => Promise<void> | void
         useLoading?: boolean
+        loading?: boolean
     }>(),
     {
         useLoading: false
@@ -33,7 +34,7 @@ async function doAction() {
 <template>
     <n-button
         @click="doAction"
-        :loading="running"
+        :loading="running || loading"
         :focusable="false"
         :disabled="disabled"
         size="small"
