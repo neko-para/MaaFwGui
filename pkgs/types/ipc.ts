@@ -103,7 +103,7 @@ export type MainService = {
     'github.newRepo': (url: string) => boolean
     'github.delRepo': (id: GithubRepoId) => boolean
     'github.checkRepoUpdate': (id: GithubRepoId) => boolean
-    'github.exportRepo': (id: GithubRepoId) => boolean
+    'github.exportRepo': (id: GithubRepoId, tag: string) => boolean
 }
 
 export type RendererService = {

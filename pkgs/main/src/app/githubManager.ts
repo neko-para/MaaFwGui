@@ -1,4 +1,11 @@
-import { GithubRepoId, KnownArch, KnownPlatform, ProjectId, SystemInfo } from '@mfg/types'
+import {
+    GithubRepoId,
+    GithubRepoInfo,
+    KnownArch,
+    KnownPlatform,
+    ProjectId,
+    SystemInfo
+} from '@mfg/types'
 import axios from 'axios'
 import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
@@ -95,15 +102,27 @@ export class MfgGithubManager {
             })
 
             try {
-                const resp = await octokit.rest.repos.getLatestRelease({
-                    owner: repo.owner,
-                    repo: repo.repo,
-                    headers: {
-                        'X-GitHub-Api-Version': '2022-11-28'
-                    }
-                })
-                repo.update = {
-                    version: resp.data.tag_name
+                const versions = (
+                    await octokit.rest.repos.listReleases({
+                        owner: repo.owner,
+                        repo: repo.repo,
+                        headers: {
+                            'X-GitHub-Api-Version': '2022-11-28'
+                        }
+                    })
+                ).data.map(x => x.tag_name)
+                const latest = (
+                    await octokit.rest.repos.getLatestRelease({
+                        owner: repo.owner,
+                        repo: repo.repo,
+                        headers: {
+                            'X-GitHub-Api-Version': '2022-11-28'
+                        }
+                    })
+                ).data.tag_name
+                repo.meta = {
+                    versions,
+                    latest
                 }
                 await mfgApp.saveConfig()
                 return true
@@ -112,96 +131,112 @@ export class MfgGithubManager {
                 return false
             }
         }
-        globalThis.main.github.exportRepo = async id => {
+        globalThis.main.github.exportRepo = async (id, tag) => {
             const repo = mfgApp.config.github?.repos?.find(x => x.id === id)
             if (!repo) {
                 return false
             }
 
-            if (!repo.update || repo.expose) {
-                return false
-            }
+            return await this.checkoutVersion(repo, tag)
+        }
+    }
 
-            const octokit = new Octokit({
-                auth: mfgApp.config.config?.githubAuthToken
+    async checkoutVersion(repo: GithubRepoInfo, tag: string) {
+        if (!repo.meta) {
+            return false
+        }
+
+        const octokit = new Octokit({
+            auth: mfgApp.config.config?.githubAuthToken
+        })
+
+        try {
+            const resp = await octokit.rest.repos.getReleaseByTag({
+                owner: repo.owner,
+                repo: repo.repo,
+                tag: tag,
+                headers: {
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
             })
 
-            try {
-                const resp = await octokit.rest.repos.getReleaseByTag({
-                    owner: repo.owner,
-                    repo: repo.repo,
-                    tag: repo.update.version,
-                    headers: {
-                        'X-GitHub-Api-Version': '2022-11-28'
-                    }
-                })
+            const platNames: Record<KnownPlatform, RegExp> = {
+                win32: /[^r]win(dows|32)?/,
+                linux: /linux/,
+                darwin: /mac(os)?|darwin/
+            }
+            const archNames: Record<KnownArch, RegExp> = {
+                x64: /x86(_64)?|x64|amd64/,
+                arm64: /arm(64)?|aarch64/
+            }
+            const assets = resp.data.assets.filter(x => {
+                return (
+                    platNames[process.platform as KnownPlatform].test(x.name) &&
+                    archNames[process.arch as KnownArch].test(x.name)
+                )
+            })
+            if (assets.length !== 1) {
+                // TODO: ask user to choose
+                console.log(assets.map(x => x.name))
+                return false
+            }
+            const asset = assets[0]
 
-                const platNames: Record<KnownPlatform, RegExp> = {
-                    win32: /[^r]win(dows|32)?/,
-                    linux: /linux/,
-                    darwin: /mac(os)?|darwin/
-                }
-                const archNames: Record<KnownArch, RegExp> = {
-                    x64: /x86(_64)?|x64|amd64/,
-                    arm64: /arm(64)?|aarch64/
-                }
-                const assets = resp.data.assets.filter(x => {
-                    return (
-                        platNames[process.platform as KnownPlatform].test(x.name) &&
-                        archNames[process.arch as KnownArch].test(x.name)
-                    )
-                })
-                if (assets.length !== 1) {
-                    // TODO: ask user to choose
-                    console.log(assets.map(x => x.name))
+            const rootFolder = path.join(mfgApp.root, 'github', repo.id, tag)
+            await fs.mkdir(path.join(rootFolder, 'tarballs'), {
+                recursive: true
+            })
+
+            const assetPath = path.join(rootFolder, 'tarballs', asset.name)
+            if (!existsSync(assetPath)) {
+                const release = (
+                    await axios({
+                        url: asset.browser_download_url,
+                        responseType: 'arraybuffer',
+                        headers: {
+                            Authorization: mfgApp.config.config?.githubAuthToken
+                                ? `Bear ${mfgApp.config.config.githubAuthToken}`
+                                : undefined
+                        }
+                    })
+                ).data as ArrayBuffer
+                await fs.writeFile(path.join(assetPath), Buffer.from(release))
+            }
+
+            if (!existsSync(path.join(rootFolder, 'done'))) {
+                await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
+                if (
+                    asset.name.endsWith('.tar.gz') ||
+                    asset.name.endsWith('.tar') ||
+                    asset.name.endsWith('.tgz')
+                ) {
+                    await tar.x({
+                        file: assetPath,
+                        cwd: path.join(rootFolder, 'tree')
+                    })
+                } else if (asset.name.endsWith('.zip')) {
+                    const file = await unzipper.Open.file(assetPath)
+                    await file.extract({
+                        path: path.join(rootFolder, 'tree')
+                    })
+                } else {
+                    console.log('unknown format', asset.name)
                     return false
                 }
-                const asset = assets[0]
+                await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())
+            }
 
-                const rootFolder = path.join(mfgApp.root, 'github', repo.update.version)
-                await fs.mkdir(path.join(rootFolder, 'tarballs'), {
-                    recursive: true
-                })
-
-                const assetPath = path.join(rootFolder, 'tarballs', asset.name)
-                if (!existsSync(assetPath)) {
-                    const release = (
-                        await axios({
-                            url: asset.browser_download_url,
-                            responseType: 'arraybuffer',
-                            headers: {
-                                Authorization: mfgApp.config.config?.githubAuthToken
-                                    ? `Bear ${mfgApp.config.config.githubAuthToken}`
-                                    : undefined
-                            }
-                        })
-                    ).data as ArrayBuffer
-                    await fs.writeFile(path.join(assetPath), Buffer.from(release))
+            if (repo.expose) {
+                const project = mfgApp.config.projects?.find(x => x.id === repo.expose!.project)
+                if (!project) {
+                    delete repo.expose
+                } else {
+                    repo.expose.version = tag
+                    project.path = path.join(rootFolder, 'tree', 'interface.json')
                 }
+            }
 
-                if (!existsSync(path.join(rootFolder, 'done'))) {
-                    await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
-                    if (
-                        asset.name.endsWith('.tar.gz') ||
-                        asset.name.endsWith('.tar') ||
-                        asset.name.endsWith('.tgz')
-                    ) {
-                        await tar.x({
-                            file: assetPath,
-                            cwd: path.join(rootFolder, 'tree')
-                        })
-                    } else if (asset.name.endsWith('.zip')) {
-                        const file = await unzipper.Open.file(assetPath)
-                        await file.extract({
-                            path: path.join(rootFolder, 'tree')
-                        })
-                    } else {
-                        console.log('unknown format', asset.name)
-                        return false
-                    }
-                    await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())
-                }
-
+            if (!repo.expose) {
                 const pid = generateId() as ProjectId
 
                 mfgApp.config.projects = mfgApp.config.projects ?? []
@@ -215,15 +250,15 @@ export class MfgGithubManager {
 
                 repo.expose = {
                     project: pid,
-                    version: repo.update.version
+                    version: tag
                 }
-
-                await mfgApp.saveConfig()
-                return true
-            } catch (err) {
-                console.log(err)
-                return false
             }
+
+            await mfgApp.saveConfig()
+            return true
+        } catch (err) {
+            console.log(err)
+            return false
         }
     }
 }

@@ -11,13 +11,6 @@ export async function requestNewExternalProject() {
     await syncProjects()
 }
 
-export async function requestNewGithubReleaseProject(url: string) {
-    // await window.main.project.new('githubRelease', {
-    //     url
-    // })
-    await syncProjects()
-}
-
 export async function requestDelProject(pid: ProjectId) {
     await window.main.project.del(pid)
     await syncProjects()
