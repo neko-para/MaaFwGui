@@ -60,7 +60,6 @@ export type Interface = {
 }
 
 export type MainService = {
-    'utils.generateId': () => string
     'utils.querySystemInfo': () => SystemInfo
     'utils.queryConfig': () => GlobalConfig
     // 'utils.updateConfig': (cfg: Partial<GlobalConfig>) => void
@@ -108,8 +107,6 @@ export type MainService = {
 export type RendererService = {
     'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
-
-    'project.cloneProgress': (phase: string, loaded: number, total: number) => void
 }
 
 type Get<O, K extends string> = K extends keyof O ? O[K] : never

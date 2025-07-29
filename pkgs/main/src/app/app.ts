@@ -5,7 +5,6 @@ import fs from 'fs/promises'
 import path from 'path'
 
 import pkg from '../../../../package.json'
-import { generateId } from '../utils/uuid'
 import { MfgDeviceManager } from './deviceManager'
 import { MfgGithubManager } from './githubManager'
 import { MfgLaunchManager } from './launchManager'
@@ -50,8 +49,6 @@ class MfgApp {
     }
 
     initUtils() {
-        globalThis.main.utils.generateId = generateId
-
         globalThis.main.utils.querySystemInfo = () => ({
             platform: process.platform as SystemInfo['platform'],
             arch: process.arch as SystemInfo['arch']

@@ -1,23 +1,13 @@
-import {
-    GithubRepoId,
-    GithubRepoInfo,
-    KnownArch,
-    KnownPlatform,
-    ProjectId,
-    SystemInfo
-} from '@mfg/types'
+import { GithubRepoId, GithubRepoInfo, KnownArch, KnownPlatform, ProjectId } from '@mfg/types'
 import axios from 'axios'
 import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { Octokit } from 'octokit'
 import * as path from 'path'
-import unzipper from 'unzipper'
 
+import { extractAuto } from '../utils/compress'
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
-
-// 目前esbuild配置有点问题, 导致默认会找到esm的实现上, 之后看怎么处理下
-const tar = require('tar')
 
 export class MfgGithubManager {
     async init() {
@@ -205,22 +195,8 @@ export class MfgGithubManager {
 
             if (!existsSync(path.join(rootFolder, 'done'))) {
                 await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
-                if (
-                    asset.name.endsWith('.tar.gz') ||
-                    asset.name.endsWith('.tar') ||
-                    asset.name.endsWith('.tgz')
-                ) {
-                    await tar.x({
-                        file: assetPath,
-                        cwd: path.join(rootFolder, 'tree')
-                    })
-                } else if (asset.name.endsWith('.zip')) {
-                    const file = await unzipper.Open.file(assetPath)
-                    await file.extract({
-                        path: path.join(rootFolder, 'tree')
-                    })
-                } else {
-                    console.log('unknown format', asset.name)
+
+                if (!(await extractAuto(asset.name, path.join(rootFolder, 'tree')))) {
                     return false
                 }
                 await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())

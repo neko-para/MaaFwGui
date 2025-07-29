@@ -1,6 +1,5 @@
 import { Interface, ProjectId } from '@mfg/types'
 import { dialog } from 'electron'
-import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import * as path from 'path'
 
