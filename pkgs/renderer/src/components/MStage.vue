@@ -46,6 +46,9 @@ async function updateStageName(name: string) {
 async function selectProject(project: ProjectId) {
     await window.main.stage.update(profileId.value!, props.id, {
         project,
+        controller: undefined,
+        resource: undefined,
+        adb: undefined,
         tasks: []
     })
     await syncProfile()
@@ -81,7 +84,9 @@ async function selectProject(project: ProjectId) {
                     <m-button
                         @action="
                             router.push({
-                                path: `/project`
+                                path: stageMeta.project
+                                    ? `/project/${stageMeta.project}`
+                                    : '/project'
                             })
                         "
                     >

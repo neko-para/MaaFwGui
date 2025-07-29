@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
+
 import MButton from '@/components/MButton.vue'
-import { requestCheckRepoUpdate, useGithubRepo } from '@/states/github'
+import { requestCheckRepoUpdate, requestExportRepo, useGithubRepo } from '@/states/github'
+
+const router = useRouter()
 
 const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
 </script>
@@ -16,6 +21,26 @@ const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
             <span> {{ activeGithubRepoInfo.name }} </span>
             <span> 地址 </span>
             <span> {{ activeGithubRepoInfo.url }} </span>
+            <template v-if="activeGithubRepoInfo.expose">
+                <span> 当前版本 </span>
+                <div class="flex items-center gap-2">
+                    <span> {{ activeGithubRepoInfo.expose.version }} </span>
+                    <m-button
+                        @click="
+                            () => {
+                                router.back()
+                                nextTick(() => {
+                                    router.replace({
+                                        path: `/project/${activeGithubRepoInfo!.expose!.project}`
+                                    })
+                                })
+                            }
+                        "
+                    >
+                        查看
+                    </m-button>
+                </div>
+            </template>
             <template v-if="activeGithubRepoInfo.update">
                 <span> 最新版本 </span>
                 <span> {{ activeGithubRepoInfo.update?.version }} </span>
@@ -24,6 +49,13 @@ const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
             <div class="flex items-center gap-2">
                 <m-button :action="async () => requestCheckRepoUpdate(githubRepoId!)" use-loading>
                     检查更新
+                </m-button>
+                <m-button
+                    v-if="!activeGithubRepoInfo.expose && activeGithubRepoInfo.update"
+                    :action="async () => requestExportRepo(githubRepoId!)"
+                    use-loading
+                >
+                    导出项目
                 </m-button>
             </div>
         </div>

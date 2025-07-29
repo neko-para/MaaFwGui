@@ -18,9 +18,6 @@ app.setAboutPanelOptions({
 app.on('ready', async () => {
     createWindow()
 
-    globalThis.main.misc.MaaFwVersion = () => maa.Global.version
-    globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
-
     mfgApp.init()
 })
 

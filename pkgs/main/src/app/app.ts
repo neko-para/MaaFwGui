@@ -1,5 +1,6 @@
+import * as maa from '@maaxyz/maa-node'
 import { SystemInfo } from '@mfg/types'
-import { app } from 'electron'
+import { app, shell } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -39,6 +40,7 @@ class MfgApp {
         await this.loadConfig()
 
         this.initUtils()
+        this.initMiscs()
 
         await this.profileManager.init()
         await this.projectManager.init()
@@ -51,7 +53,8 @@ class MfgApp {
         globalThis.main.utils.generateId = generateId
 
         globalThis.main.utils.querySystemInfo = () => ({
-            platform: process.platform as SystemInfo['platform']
+            platform: process.platform as SystemInfo['platform'],
+            arch: process.arch as SystemInfo['arch']
         })
 
         globalThis.main.utils.queryConfig = () => {
@@ -62,6 +65,15 @@ class MfgApp {
         //     Object.assign(this.config.config, cfg)
         //     await this.saveConfig()
         // }
+    }
+
+    initMiscs() {
+        globalThis.main.misc.MaaFwVersion = () => maa.Global.version
+        globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
+
+        globalThis.main.misc.revealData = async () => {
+            await shell.openPath(this.root)
+        }
     }
 
     get configPath() {

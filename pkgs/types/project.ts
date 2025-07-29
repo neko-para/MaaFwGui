@@ -1,3 +1,5 @@
+import type { GithubRepoId } from './github'
+
 export type ProjectId = string & { __brand: 'ProjectId' }
 
 export type ProjectManageType = 'external' | 'managed'
@@ -9,4 +11,6 @@ export type ProjectInfo = {
 
     type: ProjectManageType
     path: string
+
+    github?: GithubRepoId
 }

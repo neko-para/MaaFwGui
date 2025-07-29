@@ -7,8 +7,12 @@ import type { LaunchId, LaunchStatus } from './launch'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
 
+export type KnownPlatform = 'win32' | 'linux' | 'darwin'
+export type KnownArch = 'x64' | 'arm64'
+
 export type SystemInfo = {
-    platform: 'win32' | 'linux' | 'darwin'
+    platform: KnownPlatform
+    arch: KnownArch
 }
 
 export type Interface = {
@@ -64,6 +68,7 @@ export type MainService = {
 
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
+    'misc.revealData': () => void
 
     'profile.query': () => ProfileInfo[]
     'profile.new': () => void
@@ -98,6 +103,7 @@ export type MainService = {
     'github.newRepo': (url: string) => boolean
     'github.delRepo': (id: GithubRepoId) => boolean
     'github.checkRepoUpdate': (id: GithubRepoId) => boolean
+    'github.exportRepo': (id: GithubRepoId) => boolean
 }
 
 export type RendererService = {

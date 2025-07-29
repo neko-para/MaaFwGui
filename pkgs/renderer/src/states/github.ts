@@ -2,6 +2,8 @@ import type { GithubRepoId, GithubRepoInfo } from '@mfg/types'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { syncProjects } from './project'
+
 export const githubRepoInfo = ref<GithubRepoInfo[]>([])
 
 export async function syncRepos() {
@@ -21,6 +23,12 @@ export async function requestDelRepo(id: GithubRepoId) {
 export async function requestCheckRepoUpdate(id: GithubRepoId) {
     await window.main.github.checkRepoUpdate(id)
     await syncRepos()
+}
+
+export async function requestExportRepo(id: GithubRepoId) {
+    await window.main.github.exportRepo(id)
+    await syncRepos()
+    await syncProjects()
 }
 
 export function useGithubRepo() {

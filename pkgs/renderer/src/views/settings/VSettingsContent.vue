@@ -22,6 +22,10 @@ async function validateToken() {
     config.value = await window.main.utils.queryConfig()
 }
 
+async function revealData() {
+    await window.main.misc.revealData()
+}
+
 onMounted(async () => {
     fwVer.value = await window.main.misc.MaaFwVersion()
     guiVer.value = await window.main.misc.MaaFwGuiVersion()
@@ -61,6 +65,14 @@ onMounted(async () => {
             <span> {{ fwVer }} </span>
             <span> MaaFrameworkGui </span>
             <span> {{ guiVer }} </span>
+        </div>
+
+        <div class="flex gap-2">
+            <span class="text-xl"> 调试 </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <m-button :action="revealData" use-loading> 查看数据 </m-button>
         </div>
     </div>
 </template>

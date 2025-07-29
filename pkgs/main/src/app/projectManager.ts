@@ -51,11 +51,20 @@ export class MfgProjectManager {
                 return false
             }
 
+            const project = mfgApp.config.projects[projectIndex]
+
             for (const profile of mfgApp.config.profiles ?? []) {
                 for (const stage of profile.stages) {
                     if (stage.project === id) {
                         return false
                     }
+                }
+            }
+
+            if (project.github) {
+                const repo = mfgApp.config.github?.repos?.find(x => x.id === project.github)
+                if (repo) {
+                    delete repo.expose
                 }
             }
 

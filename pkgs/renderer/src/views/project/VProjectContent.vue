@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+import MButton from '@/components/MButton.vue'
 import { useInterface, useProject } from '@/states/project'
+
+const router = useRouter()
 
 const { activeProjectInfo, projectId } = useProject()
 
@@ -18,6 +23,25 @@ const { interfaceData } = useInterface(() => projectId.value)
             <span> {{ activeProjectInfo.path }} </span>
             <span> 类型 </span>
             <span> {{ activeProjectInfo.type === 'external' ? '外部' : '托管' }} </span>
+            <template v-if="activeProjectInfo.type === 'managed'">
+                <template v-if="activeProjectInfo.github">
+                    <span> 来源 </span>
+                    <div class="flex items-center gap-2">
+                        <span> Github </span>
+                        <m-button
+                            @action="
+                                () => {
+                                    router.push({
+                                        path: `/github-repo/${activeProjectInfo!.github}`
+                                    })
+                                }
+                            "
+                        >
+                            查看
+                        </m-button>
+                    </div>
+                </template>
+            </template>
         </div>
     </div>
 </template>
