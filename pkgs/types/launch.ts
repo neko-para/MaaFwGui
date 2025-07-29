@@ -1,4 +1,5 @@
 import type * as maa from '@maaxyz/maa-node'
+import type * as child_process from 'node:child_process'
 
 import type { ProfileId, StageId, TaskId } from './profile'
 
@@ -13,6 +14,8 @@ export type LaunchInfo = {
         controller?: maa.ControllerBase
         resource?: maa.ResourceBase
         tasker?: maa.TaskerBase
+        client?: maa.AgentClient
+        agent?: child_process.ChildProcess
 
         postStop?: Promise<boolean>
     }

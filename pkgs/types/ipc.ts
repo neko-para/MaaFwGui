@@ -56,7 +56,6 @@ export type Interface = {
     agent?: {
         child_exec?: string
         child_args?: string[]
-        identifier?: string
     }
 }
 
