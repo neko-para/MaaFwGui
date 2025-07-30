@@ -77,6 +77,7 @@ export type MainService = {
     'stage.new': (id: ProfileId) => void
     'stage.del': (id: ProfileId, sid: StageId) => void
     'stage.update': (id: ProfileId, sid: StageId, cfg: Partial<StageInfo>) => void
+    'stage.move': (id: ProfileId, sid: StageId, sidTgt: StageId, before: boolean) => void
 
     'task.new': (id: ProfileId, sid: StageId) => void
     'task.del': (id: ProfileId, sid: StageId, tid: TaskId) => void

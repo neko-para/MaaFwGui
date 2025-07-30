@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { StageId } from '@mfg/types'
 import { NButton, NInput, NScrollbar } from 'naive-ui'
+import { ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
 import MStage from '@/components/MStage.vue'
@@ -23,6 +25,117 @@ async function updateName(name: string) {
         name
     })
     await syncProfile()
+}
+
+const dragging = ref<StageId | null>(null)
+const dragOverTarget = ref<[sid: StageId, upper: boolean] | null>(null)
+
+function dragStart(sid: StageId, ev: DragEvent) {
+    if (!(ev.currentTarget instanceof HTMLDivElement)) {
+        ev.preventDefault()
+        return
+    }
+    const divEl = ev.currentTarget as HTMLDivElement
+
+    const targetEl = divEl.parentElement?.parentElement?.parentElement
+    if (!targetEl) {
+        ev.preventDefault()
+        return
+    }
+
+    let offsetX = ev.offsetX
+    let offsetY = ev.offsetY
+    let offsetEl: HTMLElement = divEl
+    while (offsetEl !== targetEl) {
+        const parent: Element | null = offsetEl.offsetParent
+        if (!parent || !(parent instanceof HTMLElement)) {
+            ev.preventDefault()
+            return
+        }
+        offsetX += offsetEl.offsetLeft
+        offsetY += offsetEl.offsetTop
+        offsetEl = parent
+    }
+
+    if (!ev.dataTransfer) {
+        ev.preventDefault()
+        return
+    }
+
+    ev.dataTransfer.setData('text/plain', sid)
+    ev.dataTransfer.setDragImage(targetEl, offsetX, offsetY)
+
+    dragging.value = sid
+}
+
+function dragOver(sid: StageId, ev: DragEvent) {
+    if (!dragging.value) {
+        return
+    }
+
+    if (!(ev.currentTarget instanceof HTMLDivElement)) {
+        return
+    }
+    const divEl = ev.currentTarget as HTMLDivElement
+
+    if (dragging.value === sid) {
+        return
+    }
+
+    ev.preventDefault()
+    const cr = divEl.getBoundingClientRect()
+    const isUpper = ev.clientY - cr.y < cr.height / 2
+    dragOverTarget.value = [sid, isUpper]
+}
+
+function dragEnter(sid: StageId, ev: DragEvent) {
+    if (!dragging.value) {
+        return
+    }
+
+    if (!(ev.currentTarget instanceof HTMLDivElement)) {
+        return
+    }
+    const divEl = ev.currentTarget as HTMLDivElement
+
+    if (dragging.value === sid) {
+        return
+    }
+
+    ev.preventDefault()
+    const cr = divEl.getBoundingClientRect()
+    const isUpper = ev.clientY - cr.y < cr.height / 2
+    dragOverTarget.value = [sid, isUpper]
+}
+
+function dragLeave(sid: StageId, ev: DragEvent) {
+    if (!dragging.value) {
+        return
+    }
+
+    if (dragOverTarget.value?.[0] === sid) {
+        dragOverTarget.value = null
+    }
+}
+
+async function drop(sid: StageId, ev: DragEvent) {
+    if (!dragging.value || !dragOverTarget.value) {
+        return
+    }
+
+    if (dragOverTarget.value[0] !== sid) {
+        // ???
+        return
+    }
+
+    console.log(dragging.value, sid)
+
+    await window.main.stage.move(profileId.value!, dragging.value, sid, dragOverTarget.value[1])
+    await syncProfile()
+}
+
+function dragEnd(sid: StageId, ev: DragEvent) {
+    dragging.value = null
 }
 </script>
 
@@ -84,13 +197,32 @@ async function updateName(name: string) {
                 </m-button>
             </div>
             <n-scrollbar>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col">
                     <template v-if="!activeLaunchStatus">
-                        <m-stage
-                            v-for="stage in activeProfileInfo.stages"
+                        <div
+                            v-for="(stage, idx) in activeProfileInfo.stages"
                             :key="stage.id"
-                            :id="stage.id"
-                        ></m-stage>
+                            :class="{
+                                'pt-1': idx !== 0,
+                                'pb-1': idx !== activeProfileInfo.stages.length - 1
+                            }"
+                            @dragover="e => dragOver(stage.id, e)"
+                            @dragenter="e => dragEnter(stage.id, e)"
+                            @dragleave="e => dragLeave(stage.id, e)"
+                            @drop="e => drop(stage.id, e)"
+                        >
+                            <m-stage :id="stage.id">
+                                <template #dragAnchor>
+                                    <div
+                                        @dragstart="e => dragStart(stage.id, e)"
+                                        @dragend="e => dragEnd(stage.id, e)"
+                                        :draggable="true"
+                                    >
+                                        排序
+                                    </div>
+                                </template>
+                            </m-stage>
+                        </div>
                     </template>
                     <template v-else>
                         <div v-for="stage in activeProfileInfo.stages" :key="stage.id">

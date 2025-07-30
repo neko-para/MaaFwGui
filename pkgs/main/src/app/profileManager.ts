@@ -76,7 +76,30 @@ export class MfgProfileManager {
             Object.assign(stage, cfg)
             await mfgApp.saveConfig()
         }
+        globalThis.main.stage.move = async (id, sid, sidTgt, before) => {
+            const profile = mfgApp.config.profiles?.find(p => p.id === id)
+            if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
+                return
+            }
+            const srcIdx = profile.stages.findIndex(s => s.id === sid) ?? -1
+            if (srcIdx === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
+                return
+            }
 
+            const stage = profile.stages.splice(srcIdx, 1)[0]
+
+            const dstIdx = profile.stages.findIndex(s => s.id === sidTgt) ?? -1
+            if (dstIdx === -1) {
+                profile.stages.splice(srcIdx, 0, stage)
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
+                return
+            }
+
+            profile.stages.splice(before ? dstIdx : dstIdx + 1, 0, stage)
+            await mfgApp.saveConfig()
+        }
         globalThis.main.task.new = async (id, sid) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {

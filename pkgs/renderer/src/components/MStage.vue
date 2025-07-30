@@ -64,6 +64,10 @@ async function selectProject(project: ProjectId) {
             @close="requestDelStage(profileId, stageMeta.id)"
             size="small"
         >
+            <template #header-extra>
+                <slot name="dragAnchor"></slot>
+            </template>
+
             <div class="form-grid items-center gap-2">
                 <span> 名称 </span>
                 <n-input
