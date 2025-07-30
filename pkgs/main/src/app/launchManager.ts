@@ -27,7 +27,7 @@ export class MfgLaunchManager {
             if (this.launchIndex[id]) {
                 return
             }
-            const lid = generateId() as LaunchId
+            const lid = generateId<LaunchId>()
             this.launchIndex[id] = lid
             this.launchInfo[lid] = {
                 id: lid,

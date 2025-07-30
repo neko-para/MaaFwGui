@@ -10,7 +10,7 @@ export class MfgProfileManager {
         }
         globalThis.main.profile.new = async () => {
             const profile: ProfileInfo = {
-                id: generateId() as ProfileId,
+                id: generateId(),
                 name: '<未命名方案>',
                 stages: []
             }
@@ -40,7 +40,7 @@ export class MfgProfileManager {
                 return
             }
             profile.stages.push({
-                id: generateId() as StageId,
+                id: generateId(),
                 name: '<未命名步骤>'
             })
             await mfgApp.saveConfig()
@@ -80,7 +80,7 @@ export class MfgProfileManager {
                 return
             }
             const task: TaskInfo = {
-                id: generateId() as TaskId
+                id: generateId()
             }
             stage.tasks = [...(stage.tasks ?? []), task]
             await mfgApp.saveConfig()

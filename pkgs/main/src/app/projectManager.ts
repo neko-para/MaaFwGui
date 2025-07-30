@@ -32,7 +32,7 @@ export class MfgProjectManager {
             }
             mfgApp.config.projects = mfgApp.config.projects ?? []
             mfgApp.config.projects.push({
-                id: generateId() as ProjectId,
+                id: generateId(),
                 name: path.basename(dir),
                 type: 'external',
                 path: file

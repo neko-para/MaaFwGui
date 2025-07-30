@@ -9,6 +9,10 @@ import { extractAuto } from '../utils/compress'
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
 
+const genericHeaders = {
+    'X-GitHub-Api-Version': '2022-11-28'
+}
+
 export class MfgGithubManager {
     async init() {
         globalThis.main.github.tryUpdateToken = async token => {
@@ -17,9 +21,7 @@ export class MfgGithubManager {
             })
             try {
                 const resp = await octokit.rest.users.getAuthenticated({
-                    headers: {
-                        'X-GitHub-Api-Version': '2022-11-28'
-                    }
+                    headers: genericHeaders
                 })
                 mfgApp.config.config = {
                     ...mfgApp.config.config,
@@ -51,7 +53,7 @@ export class MfgGithubManager {
             mfgApp.config.github = mfgApp.config.github ?? {}
             mfgApp.config.github.repos = mfgApp.config.github.repos ?? []
             mfgApp.config.github.repos.push({
-                id: generateId() as GithubRepoId,
+                id: generateId(),
 
                 name: match[2],
 
@@ -96,18 +98,14 @@ export class MfgGithubManager {
                     await octokit.rest.repos.listReleases({
                         owner: repo.owner,
                         repo: repo.repo,
-                        headers: {
-                            'X-GitHub-Api-Version': '2022-11-28'
-                        }
+                        headers: genericHeaders
                     })
                 ).data.map(x => x.tag_name)
                 const latest = (
                     await octokit.rest.repos.getLatestRelease({
                         owner: repo.owner,
                         repo: repo.repo,
-                        headers: {
-                            'X-GitHub-Api-Version': '2022-11-28'
-                        }
+                        headers: genericHeaders
                     })
                 ).data.tag_name
                 repo.meta = {
@@ -145,9 +143,7 @@ export class MfgGithubManager {
                 owner: repo.owner,
                 repo: repo.repo,
                 tag: tag,
-                headers: {
-                    'X-GitHub-Api-Version': '2022-11-28'
-                }
+                headers: genericHeaders
             })
 
             const platNames: Record<KnownPlatform, RegExp> = {
@@ -213,7 +209,7 @@ export class MfgGithubManager {
             }
 
             if (!repo.expose) {
-                const pid = generateId() as ProjectId
+                const pid = generateId<ProjectId>()
 
                 mfgApp.config.projects = mfgApp.config.projects ?? []
                 mfgApp.config.projects.push({

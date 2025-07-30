@@ -11,15 +11,17 @@ export class MfgDeviceManager {
         }
 
         globalThis.main.device.scan = async () => {
+            mfgApp.config.devices = mfgApp.config.devices ?? []
+
             const devs = await maa.AdbController.find()
             const newDevs: AdbDevice[] = []
             for (const dev of devs ?? []) {
-                const prev = mfgApp.config.devices?.find(d => {
+                const prev = mfgApp.config.devices.find(d => {
                     return d.adb_path === dev[1] && d.address === dev[2]
                 })
                 if (!prev) {
                     newDevs.push({
-                        id: generateId() as AdbDeviceId,
+                        id: generateId(),
 
                         name: dev[0],
                         adb_path: dev[1],
@@ -35,7 +37,7 @@ export class MfgDeviceManager {
                     prev.config = dev[5]
                 }
             }
-            mfgApp.config.devices = [...(mfgApp.config.devices ?? []), ...newDevs]
+            mfgApp.config.devices.push(...newDevs)
             await mfgApp.saveConfig()
             return mfgApp.config.devices
         }
