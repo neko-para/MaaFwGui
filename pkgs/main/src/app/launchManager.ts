@@ -276,14 +276,13 @@ export class MfgLaunchManager {
             const identifier = launch.instance.client.identifier ?? 'vsc-no-identifier'
 
             try {
-                launch.instance.agent = child_process.spawn(
+                const cp = child_process.spawn(
                     interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir),
                     (interfaceData.agent.child_args ?? [])
                         .map(arg => arg.replaceAll('{PROJECT_DIR}', projectDir))
                         .concat([identifier]),
                     {
                         stdio: 'pipe',
-                        shell: true,
                         cwd: projectDir,
                         env: {
                             MFG_AGENT: '1',
@@ -292,11 +291,33 @@ export class MfgLaunchManager {
                         }
                     }
                 )
-            } catch {
-                globalThis.renderer.utils.showToast('error', '启动Agent失败')
+
+                const spawnErr = await new Promise<Error | null>(resolve => {
+                    cp.on('spawn', () => {
+                        resolve(null)
+                    })
+                    cp.on('error', err => {
+                        resolve(err)
+                    })
+                })
+                if (spawnErr) {
+                    throw spawnErr
+                }
+
+                cp.stdout.on('data', (chunk: Buffer) => {
+                    console.log(chunk.toString())
+                })
+                cp.stderr.on('data', (chunk: Buffer) => {
+                    console.log(chunk.toString())
+                })
+
+                launch.instance.agent = cp
+            } catch (err) {
+                globalThis.renderer.utils.showToast('error', `启动Agent失败 ${err}`)
                 return false
             }
 
+            launch.instance.client.timeout = 5000
             launch.instance.client.bind_resource(launch.instance.resource)
 
             if (
