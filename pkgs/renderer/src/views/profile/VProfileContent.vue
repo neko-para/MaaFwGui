@@ -62,7 +62,7 @@ function dragStart(sid: StageId, ev: DragEvent) {
         return
     }
 
-    ev.dataTransfer.setData('text/plain', sid)
+    ev.dataTransfer.effectAllowed = 'move'
     ev.dataTransfer.setDragImage(targetEl, offsetX, offsetY)
 
     dragging.value = sid
