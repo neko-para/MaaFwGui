@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 
 import MButton from '@/components/MButton.vue'
+import MPath from '@/components/MPath.vue'
 import { useInterface, useProject } from '@/states/project'
 
 const router = useRouter()
@@ -20,7 +21,7 @@ const { interfaceData } = useInterface(() => projectId.value)
             <span> 名称 </span>
             <span> {{ activeProjectInfo.name }} </span>
             <span> 路径 </span>
-            <span> {{ activeProjectInfo.path }} </span>
+            <m-path :path="activeProjectInfo.path"></m-path>
             <span> 类型 </span>
             <span> {{ activeProjectInfo.type === 'external' ? '外部' : '托管' }} </span>
             <template v-if="activeProjectInfo.type === 'managed'">

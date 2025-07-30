@@ -1,6 +1,7 @@
 import * as maa from '@maaxyz/maa-node'
 import { SystemInfo } from '@mfg/types'
 import { app, shell } from 'electron'
+import { existsSync, statSync } from 'fs'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -70,6 +71,17 @@ class MfgApp {
 
         globalThis.main.misc.revealData = async () => {
             await shell.openPath(this.root)
+        }
+        globalThis.main.misc.revealPath = async p => {
+            if (!existsSync(p)) {
+                return false
+            }
+            if (statSync(p).isFile()) {
+                await shell.openPath(path.dirname(p))
+            } else {
+                await shell.openPath(p)
+            }
+            return true
         }
     }
 

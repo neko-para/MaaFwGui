@@ -67,6 +67,7 @@ export type MainService = {
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
     'misc.revealData': () => void
+    'misc.revealPath': (path: string) => boolean
 
     'profile.query': () => ProfileInfo[]
     'profile.new': () => void
