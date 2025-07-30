@@ -22,9 +22,11 @@ export class MfgLaunchManager {
         main.launch.new = async id => {
             const profile = mfgApp.config.profiles?.find(x => x.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             if (this.launchIndex[id]) {
+                globalThis.renderer.utils.showToast('error', '方案存在其它执行记录')
                 return
             }
             const lid = generateId<LaunchId>()
@@ -46,6 +48,7 @@ export class MfgLaunchManager {
         main.launch.stop = async id => {
             const launch = this.launchInfo[id]
             if (!launch) {
+                globalThis.renderer.utils.showToast('error', '未找到指定执行记录')
                 return
             }
             launch.instance.postStop = launch.instance.tasker?.post_stop().wait().done
@@ -56,9 +59,11 @@ export class MfgLaunchManager {
         main.launch.del = async id => {
             const launch = this.launchInfo[id]
             if (!launch) {
+                globalThis.renderer.utils.showToast('error', '未找到指定执行记录')
                 return
             }
             if (!launch.status.stopped) {
+                globalThis.renderer.utils.showToast('error', '执行尚未停止')
                 return
             }
             delete this.launchIndex[launch.status.profile]
@@ -82,12 +87,12 @@ export class MfgLaunchManager {
     async launch(pid: ProfileId) {
         const profile = mfgApp.config.profiles?.find(x => x.id === pid)
         if (!profile) {
-            console.log('no profile')
+            globalThis.renderer.utils.showToast('error', '未找到指定方案')
             return
         }
         const lid = this.launchIndex[pid]
         if (!lid) {
-            console.log('no launch')
+            globalThis.renderer.utils.showToast('error', '未找到指定执行记录')
             return
         }
         const launch = this.launchInfo[lid]
@@ -120,13 +125,14 @@ export class MfgLaunchManager {
 
     async launchStageImpl(launch: LaunchInfo, stage: StageInfo) {
         if (!stage.project) {
-            console.log('no project')
+            globalThis.renderer.utils.showToast('error', '未指定项目')
             return false
         }
 
         const interfaceData = await mfgApp.projectManager.loadInterface(stage.project)
         if (!interfaceData) {
-            console.log('no interface')
+            // loadInterface里面会弹toast, 这就不弹了
+            // globalThis.renderer.utils.showToast('error', '加载项目失败')
             return false
         }
 
@@ -135,7 +141,6 @@ export class MfgLaunchManager {
 
         if (!(await this.prepareInstance(launch, stage, interfaceData))) {
             launch.status.tasks[stage.id] = 'failed'
-            console.log('build instance failed')
             return false
         }
 
@@ -191,14 +196,26 @@ export class MfgLaunchManager {
     }
 
     async prepareInstanceImpl(launch: LaunchInfo, stage: StageInfo, interfaceData: Interface) {
+        if (!stage.controller) {
+            globalThis.renderer.utils.showToast('error', '未指定控制器')
+            return false
+        }
+
         const controllerMeta = interfaceData.controller.find(x => x.name === stage.controller)
         if (!controllerMeta) {
+            globalThis.renderer.utils.showToast('error', `未找到控制器 ${stage.controller}`)
             return false
         }
 
         if (controllerMeta.type === 'Adb') {
+            if (!stage.adb) {
+                globalThis.renderer.utils.showToast('error', '未指定设备')
+                return false
+            }
+
             const dev = mfgApp.config.devices?.find(x => x.id === stage.adb)
             if (!dev) {
+                globalThis.renderer.utils.showToast('error', '未找到指定设备')
                 return false
             }
             launch.instance.controller = new maa.AdbController(
@@ -210,22 +227,32 @@ export class MfgLaunchManager {
             )
 
             if (!(await launch.instance.controller.post_connection().wait().succeeded)) {
+                globalThis.renderer.utils.showToast('error', '连接失败')
                 return false
             }
             if (!launch.instance.controller.connected) {
+                globalThis.renderer.utils.showToast('error', '连接失败')
                 return false
             }
         } else {
             return false
         }
 
+        if (!stage.resource) {
+            globalThis.renderer.utils.showToast('error', '未指定资源')
+            return false
+        }
+
         const resourceMeta = interfaceData.resource.find(x => x.name === stage.resource)
         if (!resourceMeta) {
+            globalThis.renderer.utils.showToast('error', `未找到资源 ${stage.resource}`)
             return false
         }
 
         const proj = mfgApp.config.projects?.find(x => x.id === stage.project)
         if (!proj) {
+            // 按理说不应该, 大概是用户在搞事
+            globalThis.renderer.utils.showToast('error', '未找到指定项目')
             return false
         }
         const projectDir = path.dirname(proj.path)
@@ -239,6 +266,7 @@ export class MfgLaunchManager {
 
         for (const resp of resPaths) {
             if (!(await launch.instance.resource.post_bundle(resp).wait().succeeded)) {
+                globalThis.renderer.utils.showToast('error', '资源加载失败')
                 return false
             }
         }
@@ -265,6 +293,7 @@ export class MfgLaunchManager {
                     }
                 )
             } catch {
+                globalThis.renderer.utils.showToast('error', '启动Agent失败')
                 return false
             }
 
@@ -276,18 +305,21 @@ export class MfgLaunchManager {
                     () => false
                 ))
             ) {
+                globalThis.renderer.utils.showToast('error', '连接Agent失败')
                 return false
             }
         }
 
         launch.instance.tasker = new maa.Tasker()
         launch.instance.tasker.notify = (msg, detail) => {
+            // TODO: 弹下focus, 可以抄下mfaa的协议
             console.log(msg, detail)
         }
         launch.instance.tasker.bind(launch.instance.controller)
         launch.instance.tasker.bind(launch.instance.resource)
 
         if (!launch.instance.tasker.inited) {
+            globalThis.renderer.utils.showToast('error', '初始化失败')
             return false
         }
 
@@ -300,8 +332,14 @@ export class MfgLaunchManager {
         task: TaskInfo,
         interfaceData: Interface
     ) {
+        if (!task.task) {
+            globalThis.renderer.utils.showToast('error', '未指定任务')
+            return false
+        }
+
         const taskMeta = interfaceData.task.find(x => x.name === task.task)
         if (!taskMeta) {
+            globalThis.renderer.utils.showToast('error', `未找到任务 ${task.task}`)
             return false
         }
 
@@ -318,12 +356,14 @@ export class MfgLaunchManager {
         for (const option of taskMeta.option ?? []) {
             const optionMeta = interfaceData.option?.[option]
             if (!optionMeta) {
+                globalThis.renderer.utils.showToast('error', `未找到选项组 ${option}`)
                 return false
             }
 
             const val = task.option?.[option] ?? optionMeta.default_case ?? optionMeta.cases[0].name
             const caseMeta = optionMeta.cases.find(x => x.name === val)
             if (!caseMeta) {
+                globalThis.renderer.utils.showToast('error', `未找到选项 ${val}`)
                 return false
             }
             applyOverride(caseMeta.pipeline_override)

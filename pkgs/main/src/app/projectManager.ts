@@ -22,10 +22,10 @@ export class MfgProjectManager {
                     }
                 ]
             })
-            const file = result.filePaths[0]
-            if (!file) {
+            if (result.filePaths.length === 0) {
                 return false
             }
+            const file = result.filePaths[0]
             let dir = path.dirname(file)
             if (['assets', 'install'].includes(path.basename(dir))) {
                 dir = path.dirname(dir)
@@ -42,11 +42,13 @@ export class MfgProjectManager {
         }
         globalThis.main.project.del = async id => {
             if (!mfgApp.config.projects) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
                 return false
             }
 
             const projectIndex = mfgApp.config.projects.findIndex(x => x.id === id)
             if (projectIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
                 return false
             }
 
@@ -55,6 +57,7 @@ export class MfgProjectManager {
             for (const profile of mfgApp.config.profiles ?? []) {
                 for (const stage of profile.stages) {
                     if (stage.project === id) {
+                        globalThis.renderer.utils.showToast('error', '项目已被引用')
                         return false
                     }
                 }
@@ -83,9 +86,15 @@ export class MfgProjectManager {
     async loadInterface(pid: ProjectId) {
         const info = mfgApp.config.projects?.find(x => x.id === pid)
         if (!info) {
+            globalThis.renderer.utils.showToast('error', '未找到指定项目')
             return null
         }
-        const content = JSON.parse(await fs.readFile(info.path, 'utf8')) as Interface
-        return content
+        try {
+            const content = JSON.parse(await fs.readFile(info.path, 'utf8')) as Interface
+            return content
+        } catch {
+            globalThis.renderer.utils.showToast('error', '加载项目失败')
+            return null
+        }
     }
 }

@@ -47,6 +47,7 @@ export class MfgGithubManager {
         globalThis.main.github.newRepo = async url => {
             const match = /^https:\/\/github.com\/(.+)\/(.+)(?:\.git|\/)?$/.exec(url)
             if (!match) {
+                globalThis.renderer.utils.showToast('error', '仓库地址格式错误')
                 return false
             }
 
@@ -66,16 +67,19 @@ export class MfgGithubManager {
         }
         globalThis.main.github.delRepo = async id => {
             if (!mfgApp.config.github?.repos) {
+                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
                 return false
             }
 
             const repoIndex = mfgApp.config.github.repos.findIndex(x => x.id === id) ?? -1
             if (repoIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
                 return false
             }
 
             const repo = mfgApp.config.github.repos[repoIndex]
             if (repo.expose) {
+                globalThis.renderer.utils.showToast('error', '仓库已被导出')
                 return false
             }
 
@@ -86,6 +90,7 @@ export class MfgGithubManager {
         globalThis.main.github.checkRepoUpdate = async id => {
             const repo = mfgApp.config.github?.repos?.find(x => x.id === id)
             if (!repo) {
+                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
                 return false
             }
 
@@ -115,13 +120,14 @@ export class MfgGithubManager {
                 await mfgApp.saveConfig()
                 return true
             } catch (err) {
-                console.log(err)
+                globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
                 return false
             }
         }
         globalThis.main.github.exportRepo = async (id, tag) => {
             const repo = mfgApp.config.github?.repos?.find(x => x.id === id)
             if (!repo) {
+                globalThis.renderer.utils.showToast('warning', '未找到指定仓库')
                 return false
             }
 
@@ -131,6 +137,7 @@ export class MfgGithubManager {
 
     async checkoutVersion(repo: GithubRepoInfo, tag: string) {
         if (!repo.meta) {
+            globalThis.renderer.utils.showToast('error', '仓库无更新信息')
             return false
         }
 
@@ -164,6 +171,7 @@ export class MfgGithubManager {
             if (assets.length !== 1) {
                 // TODO: ask user to choose
                 console.log(assets.map(x => x.name))
+                globalThis.renderer.utils.showToast('error', '找到多个可能的制品')
                 return false
             }
             const asset = assets[0]
@@ -193,6 +201,7 @@ export class MfgGithubManager {
                 await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
 
                 if (!(await extractAuto(asset.name, path.join(rootFolder, 'tree')))) {
+                    globalThis.renderer.utils.showToast('error', '解压失败')
                     return false
                 }
                 await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())
@@ -229,7 +238,7 @@ export class MfgGithubManager {
             await mfgApp.saveConfig()
             return true
         } catch (err) {
-            console.log(err)
+            globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
             return false
         }
     }

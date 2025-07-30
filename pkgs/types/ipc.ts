@@ -107,6 +107,8 @@ export type MainService = {
 export type RendererService = {
     'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
+
+    'utils.showToast': (category: 'info' | 'warning' | 'error' | 'success', message: string) => void
 }
 
 type Get<O, K extends string> = K extends keyof O ? O[K] : never

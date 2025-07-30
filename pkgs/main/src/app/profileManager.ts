@@ -20,6 +20,7 @@ export class MfgProfileManager {
         globalThis.main.profile.del = async id => {
             const profileIndex = mfgApp.config.profiles?.findIndex(p => p.id === id) ?? -1
             if (profileIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             mfgApp.config.profiles?.splice(profileIndex, 1)
@@ -28,6 +29,7 @@ export class MfgProfileManager {
         globalThis.main.profile.update = async (id, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             Object.assign(profile, cfg)
@@ -37,6 +39,7 @@ export class MfgProfileManager {
         globalThis.main.stage.new = async id => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             profile.stages.push({
@@ -48,10 +51,12 @@ export class MfgProfileManager {
         globalThis.main.stage.del = async (id, sid) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             const stageIdx = profile.stages.findIndex(s => s.id === sid)
             if (stageIdx === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
                 return
             }
             profile.stages.splice(stageIdx, 1)
@@ -60,10 +65,12 @@ export class MfgProfileManager {
         globalThis.main.stage.update = async (id, sid, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             const stage = profile.stages.find(s => s.id === sid)
             if (!stage) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
                 return
             }
             Object.assign(stage, cfg)
@@ -73,29 +80,36 @@ export class MfgProfileManager {
         globalThis.main.task.new = async (id, sid) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             const stage = profile.stages.find(s => s.id === sid)
             if (!stage) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
                 return
             }
+            stage.tasks = stage.tasks ?? []
+
             const task: TaskInfo = {
                 id: generateId()
             }
-            stage.tasks = [...(stage.tasks ?? []), task]
+            stage.tasks.push(task)
             await mfgApp.saveConfig()
         }
         globalThis.main.task.del = async (id, sid, tid) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             const stage = profile.stages.find(s => s.id === sid)
             if (!stage) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
                 return
             }
             const taskIdx = stage.tasks?.findIndex(t => t.id === tid) ?? -1
             if (taskIdx === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定任务')
                 return
             }
             stage.tasks?.splice(taskIdx, 1)
@@ -104,14 +118,17 @@ export class MfgProfileManager {
         globalThis.main.task.update = async (id, sid, tid, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
                 return
             }
             const stage = profile.stages.find(s => s.id === sid)
             if (!stage) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
                 return
             }
             const task = stage.tasks?.find(t => t.id === tid)
             if (!task) {
+                globalThis.renderer.utils.showToast('error', '未找到指定任务')
                 return
             }
             Object.assign(task, cfg)
