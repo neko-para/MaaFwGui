@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="Item">
 import { NScrollbar } from 'naive-ui'
-import { type Component, ref } from 'vue'
+import { type Component, computed, ref } from 'vue'
 
 const props = defineProps<{
     component: Component
@@ -22,6 +22,32 @@ function keyOf(item: Item) {
 
 const dragging = ref<ItemId | null>(null)
 const dragOverTarget = ref<[sid: ItemId, upper: boolean] | null>(null)
+
+const draggingIndex = computed(() => {
+    if (dragOverTarget.value) {
+        return props.items.findIndex(x => keyOf(x) === dragOverTarget.value![0])
+    } else {
+        return -1
+    }
+})
+
+const draggingUpper = computed(() => {
+    const index = draggingIndex.value
+    if (index !== -1 && index > 0) {
+        return keyOf(props.items[index - 1])
+    } else {
+        return null
+    }
+})
+
+const draggingLower = computed(() => {
+    const index = draggingIndex.value
+    if (index !== -1 && index + 1 < props.items.length) {
+        return keyOf(props.items[index + 1])
+    } else {
+        return null
+    }
+})
 
 function dragStart(sid: ItemId, ev: DragEvent) {
     if (!(ev.currentTarget instanceof HTMLDivElement)) {
@@ -71,10 +97,6 @@ function dragOver(sid: ItemId, ev: DragEvent) {
     }
     const divEl = ev.currentTarget as HTMLDivElement
 
-    if (dragging.value === sid) {
-        return
-    }
-
     ev.preventDefault()
     const cr = divEl.getBoundingClientRect()
     const isUpper = ev.clientY - cr.y < cr.height / 2
@@ -121,6 +143,10 @@ function drop(sid: ItemId, ev: DragEvent) {
         return
     }
 
+    if (dragging.value === sid) {
+        return
+    }
+
     emits('dragged', dragging.value, sid, dragOverTarget.value[1])
 }
 
@@ -143,19 +169,64 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
                     paddingTop: index === 0 ? undefined : halfGap,
                     paddingBottom: index === items.length - 1 ? undefined : halfGap
                 }"
+                class="relative"
             >
-                <component :id="keyOf(item)" :item="item" :index="index">
+                <component
+                    :id="keyOf(item)"
+                    :item="item"
+                    :index="index"
+                    :class="{
+                        'pointer-events-none': !!dragging
+                    }"
+                >
                     <template #anchor>
                         <div
                             @dragstart="e => dragStart(keyOf(item), e)"
                             @dragend="e => dragEnd(keyOf(item), e)"
                             :draggable="true"
+                            class="pointer-events-auto"
                         >
                             <slot name="anchor" v-bind="{ item, index }"></slot>
                         </div>
                     </template>
                 </component>
+                <div
+                    class="draggable-layer top-0"
+                    :style="{
+                        opacity:
+                            dragging &&
+                            dragOverTarget &&
+                            ((dragOverTarget[1] && dragOverTarget[0] === keyOf(item)) ||
+                                (!dragOverTarget[1] && draggingLower === keyOf(item)))
+                                ? '30%'
+                                : '0'
+                    }"
+                >
+                    upper
+                </div>
+                <div
+                    class="draggable-layer bottom-0"
+                    :style="{
+                        opacity:
+                            dragging &&
+                            dragOverTarget &&
+                            ((!dragOverTarget[1] && dragOverTarget[0] === keyOf(item)) ||
+                                (dragOverTarget[1] && draggingUpper === keyOf(item)))
+                                ? '30%'
+                                : '0'
+                    }"
+                >
+                    lower
+                </div>
             </div>
         </div>
     </n-scrollbar>
 </template>
+
+<style scoped>
+@reference "../base.css";
+
+.draggable-layer {
+    @apply absolute left-0 right-0 h-1/2 bg-slate-500 pointer-events-none transition-opacity;
+}
+</style>
