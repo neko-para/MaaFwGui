@@ -157,5 +157,40 @@ export class MfgProfileManager {
             Object.assign(task, cfg)
             await mfgApp.saveConfig()
         }
+        globalThis.main.task.move = async (id, sid, tid, tidTgt, before) => {
+            const profile = mfgApp.config.profiles?.find(p => p.id === id)
+            if (!profile) {
+                globalThis.renderer.utils.showToast('error', '未找到指定方案')
+                return
+            }
+            const stage = profile.stages.find(s => s.id === sid)
+            if (!stage) {
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
+                return
+            }
+
+            if (!stage.tasks) {
+                globalThis.renderer.utils.showToast('error', '未找到指定任务')
+                return
+            }
+
+            const srcIdx = stage.tasks.findIndex(t => t.id === tid) ?? -1
+            if (srcIdx === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定任务')
+                return
+            }
+
+            const task = stage.tasks.splice(srcIdx, 1)[0]
+
+            const dstIdx = stage.tasks.findIndex(t => t.id === tidTgt) ?? -1
+            if (dstIdx === -1) {
+                stage.tasks.splice(srcIdx, 0, task)
+                globalThis.renderer.utils.showToast('error', '未找到指定步骤')
+                return
+            }
+
+            stage.tasks.splice(before ? dstIdx : dstIdx + 1, 0, task)
+            await mfgApp.saveConfig()
+        }
     }
 }

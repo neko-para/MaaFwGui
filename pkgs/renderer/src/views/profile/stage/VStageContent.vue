@@ -1,64 +1,21 @@
 <script setup lang="ts">
-import type { Interface, TaskId } from '@mfg/types'
-import { NCard, NSelect } from 'naive-ui'
-import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import type { TaskId } from '@mfg/types'
 
 import MButton from '@/components/MButton.vue'
-import { requestDelTask, requestNewTask, syncProfile, useProfile } from '@/states/profile'
-import { useInterface } from '@/states/project'
-
-const router = useRouter()
+import MDraggable from '@/components/MDraggable.vue'
+import MTask from '@/components/MTask.vue'
+import { requestNewTask, syncProfile, useProfile } from '@/states/profile'
 
 const { profileId, stageId, activeStageInfo } = useProfile()
 
-const { interfaceData } = useInterface(() => activeStageInfo.value?.project)
-
-const taskOptions = computed(() => {
-    return interfaceData.value?.task.map(task => {
-        return {
-            value: task.name,
-            label: `${task.name} - ${task.entry}`
-        } satisfies SelectMixedOption
-    })
-})
-
-async function selectTask(tid: TaskId, task: string) {
-    await window.main.task.update(profileId.value!, stageId.value!, tid, {
-        task
-    })
-    await syncProfile()
-}
-
-function optionDefault(option: string) {
-    return (
-        interfaceData.value?.option?.[option].default_case ??
-        interfaceData.value?.option?.[option].cases[0].name
+async function moveTask(from: string, to: string, before: boolean) {
+    await window.main.task.move(
+        profileId.value!,
+        stageId.value!,
+        from as TaskId,
+        to as TaskId,
+        before
     )
-}
-
-function optionOptions(option: string) {
-    return interfaceData.value?.option?.[option].cases.map(cs => {
-        return {
-            value: cs.name,
-            label: cs.name
-        } satisfies SelectMixedOption
-    })
-}
-
-async function selectOption(
-    tid: TaskId,
-    option: string,
-    value: string,
-    oldOptions?: Record<string, string>
-) {
-    await window.main.task.update(profileId.value!, stageId.value!, tid, {
-        option: {
-            ...oldOptions,
-            [option]: value
-        }
-    })
     await syncProfile()
 }
 </script>
@@ -73,38 +30,17 @@ async function selectOption(
             </m-button>
         </div>
 
-        <n-card
-            v-for="task in activeStageInfo?.tasks ?? []"
-            :key="task.id"
-            :title="task.task ?? '<未选择任务>'"
-            closable
-            @close="requestDelTask(profileId, stageId, task.id)"
-            size="small"
+        <m-draggable
+            :component="MTask"
+            :items="activeStageInfo?.tasks ?? []"
+            key-prop="id"
+            half-gap="4px"
+            :get-real="el => el.parentElement?.parentElement?.parentElement"
+            @dragged="moveTask"
         >
-            <div class="form-grid items-center gap-2">
-                <span> 任务 </span>
-                <n-select
-                    placeholder="选择任务"
-                    :options="taskOptions"
-                    :value="task.task"
-                    @update:value="v => selectTask(task.id, v)"
-                    size="small"
-                ></n-select>
-                <template
-                    v-for="option in interfaceData?.task.find(x => x.name === task.task)?.option ??
-                    []"
-                    :key="option"
-                >
-                    <span> {{ option }} </span>
-                    <n-select
-                        :placeholder="optionDefault(option)"
-                        :options="optionOptions(option)"
-                        :value="task.option?.[option] ?? null"
-                        @update:value="v => selectOption(task.id, option, v, task.option)"
-                        size="small"
-                    ></n-select>
-                </template>
-            </div>
-        </n-card>
+            <template #anchor>
+                <div>排序</div>
+            </template>
+        </m-draggable>
     </div>
 </template>

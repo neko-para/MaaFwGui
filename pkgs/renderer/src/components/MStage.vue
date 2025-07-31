@@ -56,51 +56,47 @@ async function selectProject(project: ProjectId) {
 </script>
 
 <template>
-    <div class="flex flex-col gap-0.5">
-        <n-card
-            v-if="profileId && activeProfileInfo && stageMeta"
-            :title="stageMeta.name === '' ? '<未命名步骤>' : stageMeta.name"
-            closable
-            @close="requestDelStage(profileId, stageMeta.id)"
-            size="small"
-        >
-            <template #header-extra>
-                <slot name="anchor"></slot>
-            </template>
+    <n-card
+        v-if="profileId && activeProfileInfo && stageMeta"
+        :title="stageMeta.name === '' ? '<未命名步骤>' : stageMeta.name"
+        closable
+        @close="requestDelStage(profileId, stageMeta.id)"
+        size="small"
+    >
+        <template #header-extra>
+            <slot name="anchor"></slot>
+        </template>
 
-            <div class="form-grid items-center gap-2">
-                <span> 名称 </span>
-                <n-input
-                    placeholder="输入新名称"
-                    :value="stageMeta.name"
-                    @update:value="updateStageName"
+        <div class="form-grid items-center gap-2">
+            <span> 名称 </span>
+            <n-input
+                placeholder="输入新名称"
+                :value="stageMeta.name"
+                @update:value="updateStageName"
+                size="small"
+            ></n-input>
+            <span> 项目 </span>
+            <div class="flex items-center gap-2">
+                <n-select
+                    placeholder="选择项目"
+                    :options="projectOptions"
+                    :value="stageMeta.project"
+                    @update:value="selectProject"
                     size="small"
-                ></n-input>
-                <span> 项目 </span>
-                <div class="flex items-center gap-2">
-                    <n-select
-                        placeholder="选择项目"
-                        :options="projectOptions"
-                        :value="stageMeta.project"
-                        @update:value="selectProject"
-                        size="small"
-                    ></n-select>
-                    <m-button
-                        @action="
-                            router.push({
-                                path: stageMeta.project
-                                    ? `/project/${stageMeta.project}`
-                                    : '/project'
-                            })
-                        "
-                    >
-                        管理项目
-                    </m-button>
-                </div>
-                <template v-if="projectMeta">
-                    <m-config-project :stage="stageMeta" :project="projectMeta"></m-config-project>
-                </template>
+                ></n-select>
+                <m-button
+                    @action="
+                        router.push({
+                            path: stageMeta.project ? `/project/${stageMeta.project}` : '/project'
+                        })
+                    "
+                >
+                    管理项目
+                </m-button>
             </div>
-        </n-card>
-    </div>
+            <template v-if="projectMeta">
+                <m-config-project :stage="stageMeta" :project="projectMeta"></m-config-project>
+            </template>
+        </div>
+    </n-card>
 </template>

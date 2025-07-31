@@ -82,6 +82,7 @@ export type MainService = {
     'task.new': (id: ProfileId, sid: StageId) => void
     'task.del': (id: ProfileId, sid: StageId, tid: TaskId) => void
     'task.update': (id: ProfileId, sid: StageId, tid: TaskId, cfg: Partial<TaskInfo>) => void
+    'task.move': (id: ProfileId, sid: StageId, tid: TaskId, tidTgt: TaskId, before: boolean) => void
 
     'launch.new': (id: ProfileId) => void
     'launch.stop': (lid: LaunchId) => void
