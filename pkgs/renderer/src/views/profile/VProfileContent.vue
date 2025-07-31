@@ -4,6 +4,7 @@ import { NButton, NInput, NScrollbar } from 'naive-ui'
 import { ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
+import MDraggable from '@/components/MDraggable.vue'
 import MStage from '@/components/MStage.vue'
 import MStageLaunch from '@/components/MStageLaunch.vue'
 import { useLaunch } from '@/states/launch'
@@ -137,6 +138,11 @@ async function drop(sid: StageId, ev: DragEvent) {
 function dragEnd(sid: StageId, ev: DragEvent) {
     dragging.value = null
 }
+
+async function moveStage(from: string, to: string, before: boolean) {
+    await window.main.stage.move(profileId.value!, from as StageId, to as StageId, before)
+    await syncProfile()
+}
 </script>
 
 <template>
@@ -196,42 +202,27 @@ function dragEnd(sid: StageId, ev: DragEvent) {
                     新建步骤
                 </m-button>
             </div>
-            <n-scrollbar>
+            <m-draggable
+                v-if="!activeLaunchStatus"
+                :component="MStage"
+                :items="activeProfileInfo.stages"
+                key-prop="id"
+                half-gap="4px"
+                :get-real="el => el.parentElement?.parentElement?.parentElement"
+                @dragged="moveStage"
+            >
+                <template #anchor>
+                    <div>排序</div>
+                </template>
+            </m-draggable>
+            <n-scrollbar v-else>
                 <div class="flex flex-col">
-                    <template v-if="!activeLaunchStatus">
-                        <div
-                            v-for="(stage, idx) in activeProfileInfo.stages"
-                            :key="stage.id"
-                            :class="{
-                                'pt-1': idx !== 0,
-                                'pb-1': idx !== activeProfileInfo.stages.length - 1
-                            }"
-                            @dragover="e => dragOver(stage.id, e)"
-                            @dragenter="e => dragEnter(stage.id, e)"
-                            @dragleave="e => dragLeave(stage.id, e)"
-                            @drop="e => drop(stage.id, e)"
-                        >
-                            <m-stage :id="stage.id">
-                                <template #dragAnchor>
-                                    <div
-                                        @dragstart="e => dragStart(stage.id, e)"
-                                        @dragend="e => dragEnd(stage.id, e)"
-                                        :draggable="true"
-                                    >
-                                        排序
-                                    </div>
-                                </template>
-                            </m-stage>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <div v-for="stage in activeProfileInfo.stages" :key="stage.id">
-                            <m-stage-launch
-                                :stage="stage"
-                                :launch="activeLaunchStatus"
-                            ></m-stage-launch>
-                        </div>
-                    </template>
+                    <div v-for="stage in activeProfileInfo.stages" :key="stage.id">
+                        <m-stage-launch
+                            :stage="stage"
+                            :launch="activeLaunchStatus"
+                        ></m-stage-launch>
+                    </div>
                 </div>
             </n-scrollbar>
         </div>

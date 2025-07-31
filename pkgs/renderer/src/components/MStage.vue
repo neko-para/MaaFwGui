@@ -65,7 +65,7 @@ async function selectProject(project: ProjectId) {
             size="small"
         >
             <template #header-extra>
-                <slot name="dragAnchor"></slot>
+                <slot name="anchor"></slot>
             </template>
 
             <div class="form-grid items-center gap-2">
