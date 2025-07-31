@@ -201,9 +201,7 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
                                 ? '30%'
                                 : '0'
                     }"
-                >
-                    upper
-                </div>
+                ></div>
                 <div
                     class="draggable-layer bottom-0"
                     :style="{
@@ -215,9 +213,7 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
                                 ? '30%'
                                 : '0'
                     }"
-                >
-                    lower
-                </div>
+                ></div>
             </div>
         </div>
     </n-scrollbar>
