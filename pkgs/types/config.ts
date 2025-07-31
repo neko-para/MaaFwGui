@@ -1,4 +1,10 @@
 export type GlobalConfig = {
-    githubAuthToken?: string
     githubLoginUser?: string
+}
+
+export type SecretConfig = {
+    githubAuthToken?: string
+    githubAuthTokenRaw?: string
+    mirrorChyanToken?: string
+    mirrorChyanTokenRaw?: string
 }

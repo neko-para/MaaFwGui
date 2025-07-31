@@ -9,6 +9,7 @@ import pkg from '../../../../package.json'
 import { MfgDeviceManager } from './deviceManager'
 import { MfgGithubManager } from './githubManager'
 import { MfgLaunchManager } from './launchManager'
+import { MfgMirrorcManager } from './mirrorcManager'
 import { MfgProfileManager } from './profileManager'
 import { MfgProjectManager } from './projectManager'
 import { AppConfig } from './types'
@@ -22,6 +23,7 @@ class MfgApp {
     deviceManager: MfgDeviceManager
     launchManager: MfgLaunchManager
     githubManager: MfgGithubManager
+    mirrorcManager: MfgMirrorcManager
 
     constructor(root: string) {
         this.root = root
@@ -32,6 +34,7 @@ class MfgApp {
         this.deviceManager = new MfgDeviceManager()
         this.launchManager = new MfgLaunchManager()
         this.githubManager = new MfgGithubManager()
+        this.mirrorcManager = new MfgMirrorcManager()
     }
 
     async init() {
@@ -47,6 +50,7 @@ class MfgApp {
         await this.deviceManager.init()
         await this.launchManager.init()
         await this.githubManager.init()
+        await this.mirrorcManager.init()
     }
 
     initUtils() {

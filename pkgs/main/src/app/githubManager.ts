@@ -1,5 +1,6 @@
-import { GithubRepoId, GithubRepoInfo, KnownArch, KnownPlatform, ProjectId } from '@mfg/types'
+import { GithubRepoInfo, KnownArch, KnownPlatform, ProjectId } from '@mfg/types'
 import axios from 'axios'
+import { safeStorage } from 'electron'
 import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { Octokit } from 'octokit'
@@ -15,6 +16,14 @@ const genericHeaders = {
 
 export class MfgGithubManager {
     async init() {
+        if (!this.authToken && mfgApp.config.config?.githubLoginUser) {
+            mfgApp.config.config.githubLoginUser = undefined
+            await mfgApp.saveConfig()
+        }
+
+        globalThis.main.github.hasToken = () => {
+            return !!this.authToken
+        }
         globalThis.main.github.tryUpdateToken = async token => {
             const octokit = new Octokit({
                 auth: token
@@ -25,21 +34,21 @@ export class MfgGithubManager {
                 })
                 mfgApp.config.config = {
                     ...mfgApp.config.config,
-                    githubAuthToken: token,
                     githubLoginUser: `${resp.data.login}(${resp.data.name})`
                 }
+                this.authToken = token
                 await mfgApp.saveConfig()
                 return true
             } catch (err) {
-                console.log(err)
-                mfgApp.config.config = {
-                    ...mfgApp.config.config,
-                    githubAuthToken: '',
-                    githubLoginUser: ''
-                }
+                globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
+                this.authToken = undefined
                 await mfgApp.saveConfig()
                 return false
             }
+        }
+        globalThis.main.github.cleanToken = async () => {
+            this.authToken = undefined
+            await mfgApp.saveConfig()
         }
         globalThis.main.github.queryRepo = () => {
             return mfgApp.config.github?.repos ?? []
@@ -95,7 +104,7 @@ export class MfgGithubManager {
             }
 
             const octokit = new Octokit({
-                auth: mfgApp.config.config?.githubAuthToken
+                auth: this.authToken
             })
 
             try {
@@ -142,7 +151,7 @@ export class MfgGithubManager {
         }
 
         const octokit = new Octokit({
-            auth: mfgApp.config.config?.githubAuthToken
+            auth: this.authToken
         })
 
         try {
@@ -188,9 +197,7 @@ export class MfgGithubManager {
                         url: asset.browser_download_url,
                         responseType: 'arraybuffer',
                         headers: {
-                            Authorization: mfgApp.config.config?.githubAuthToken
-                                ? `Bear ${mfgApp.config.config.githubAuthToken}`
-                                : undefined
+                            Authorization: this.authToken ? `Bear ${this.authToken}` : undefined
                         }
                     })
                 ).data as ArrayBuffer
@@ -240,6 +247,61 @@ export class MfgGithubManager {
         } catch (err) {
             globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
             return false
+        }
+    }
+
+    set authToken(token: string | undefined) {
+        if (token === undefined) {
+            mfgApp.config.config = {
+                ...mfgApp.config.config,
+                githubLoginUser: undefined
+            }
+            mfgApp.config.secConfig = {
+                ...mfgApp.config.secConfig,
+                githubAuthToken: undefined,
+                githubAuthTokenRaw: undefined
+            }
+        } else {
+            try {
+                mfgApp.config.secConfig = {
+                    ...mfgApp.config.secConfig,
+                    githubAuthToken: safeStorage.encryptString(token).toString('base64'),
+                    githubAuthTokenRaw: undefined
+                }
+            } catch (err) {
+                globalThis.renderer.utils.showToast(
+                    'warning',
+                    `系统加密保存失败, 将使用明文保存 ${err}`
+                )
+                mfgApp.config.secConfig = {
+                    ...mfgApp.config.secConfig,
+                    githubAuthToken: undefined,
+                    githubAuthTokenRaw: Buffer.from(token).toString('base64')
+                }
+            }
+        }
+    }
+
+    get authToken() {
+        if (mfgApp.config.secConfig?.githubAuthToken) {
+            try {
+                return safeStorage.decryptString(
+                    Buffer.from(mfgApp.config.secConfig.githubAuthToken, 'base64')
+                )
+            } catch (err) {
+                globalThis.renderer.utils.showToast('warning', `系统解密失败 ${err}`)
+                return undefined
+            }
+        } else if (mfgApp.config.secConfig?.githubAuthTokenRaw) {
+            try {
+                return Buffer.from(mfgApp.config.secConfig.githubAuthTokenRaw, 'base64').toString(
+                    'utf8'
+                )
+            } catch {
+                return undefined
+            }
+        } else {
+            return undefined
         }
     }
 }

@@ -99,12 +99,18 @@ export type MainService = {
     'device.query': () => AdbDevice[]
     'device.scan': () => AdbDevice[]
 
+    'github.hasToken': () => boolean
     'github.tryUpdateToken': (token: string) => boolean
+    'github.cleanToken': () => void
     'github.queryRepo': () => GithubRepoInfo[]
     'github.newRepo': (url: string) => boolean
     'github.delRepo': (id: GithubRepoId) => boolean
     'github.checkRepoUpdate': (id: GithubRepoId) => boolean
     'github.exportRepo': (id: GithubRepoId, tag: string) => boolean
+
+    'mirrorc.hasToken': () => boolean
+    'mirrorc.tryUpdateToken': (token: string) => boolean
+    'mirrorc.cleanToken': () => void
 }
 
 export type RendererService = {
