@@ -12,7 +12,7 @@ export class MfgMirrorcManager {
             const resp = await axios({
                 url: 'https://mirrorchyan.com/api/resources/MaaFramework/latest',
                 params: {
-                    cdk: this.authToken,
+                    cdk: token,
                     user_agent: 'MaaFwGui',
                     os: process.platform,
                     arch: process.arch
