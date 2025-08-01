@@ -25,8 +25,8 @@ export async function requestCheckAppUpdate(id: MirrorcAppId) {
     await syncApps()
 }
 
-export async function requestExportApp(id: MirrorcAppId, tag: string) {
-    await window.main.mirrorc.exportApp(id, tag)
+export async function requestExportApp(id: MirrorcAppId) {
+    await window.main.mirrorc.exportApp(id)
     await syncApps()
     await syncProjects()
 }

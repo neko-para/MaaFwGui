@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { syncRepos } from './github'
+import { syncApps } from './mirrorc'
 
 export const projectInfo = ref<ProjectInfo[]>([])
 
@@ -15,6 +16,7 @@ export async function requestDelProject(pid: ProjectId) {
     await window.main.project.del(pid)
     await syncProjects()
     await syncRepos()
+    await syncApps()
 }
 
 export async function syncProjects() {

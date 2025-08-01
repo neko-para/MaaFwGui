@@ -69,6 +69,9 @@ onMounted(async () => {
     if (await window.main.github.hasToken()) {
         githubToken.value = fakeToken
     }
+    if (await window.main.mirrorc.hasToken()) {
+        mirrorcToken.value = fakeToken
+    }
 })
 </script>
 

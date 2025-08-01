@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MButton from '@/components/MButton.vue'
@@ -8,14 +8,6 @@ import { requestCheckAppUpdate, requestExportApp, useMirrorcApp } from '@/states
 const router = useRouter()
 
 const { mirrorcAppId, activeMirrorcAppInfo } = useMirrorcApp()
-
-const checkoutProcessing = ref(false)
-
-async function checkoutVersion(ver: string) {
-    checkoutProcessing.value = true
-    await requestExportApp(mirrorcAppId.value!, ver)
-    checkoutProcessing.value = false
-}
 </script>
 
 <template>
@@ -58,40 +50,29 @@ async function checkoutVersion(ver: string) {
                 <m-button :action="async () => requestCheckAppUpdate(mirrorcAppId!)" use-loading>
                     检查更新
                 </m-button>
-                <m-button
-                    v-if="!activeMirrorcAppInfo.expose && activeMirrorcAppInfo.meta"
-                    :action="
-                        async () =>
-                            requestExportApp(mirrorcAppId!, activeMirrorcAppInfo!.meta!.latest)
-                    "
-                    use-loading
-                >
-                    导出项目
-                </m-button>
-                <!-- <n-popselect
-                    v-if="activeMirrorcAppInfo.meta"
-                    trigger="hover"
-                    :options="
-                        activeMirrorcAppInfo.meta.versions.map(ver => {
-                            const isCurr = ver === activeMirrorcAppInfo!.expose?.version
-                            const isLatest = ver === activeMirrorcAppInfo!.meta!.latest
-                            return {
-                                value: ver,
-                                label: ver + (isCurr ? ' 当前' : '') + (isLatest ? ' 最新' : ''),
-                                disabled: isCurr
-                            } satisfies SelectMixedOption
-                        })
-                    "
-                    @update:value="checkoutVersion"
-                    scrollable
-                >
-                    <m-button
-                        @action="checkoutVersion(activeMirrorcAppInfo.meta.latest)"
-                        :loading="checkoutProcessing"
-                    >
-                        导出指定版本
-                    </m-button>
-                </n-popselect> -->
+                <template v-if="activeMirrorcAppInfo.meta">
+                    <template v-if="activeMirrorcAppInfo.expose">
+                        <m-button
+                            :action="async () => requestExportApp(mirrorcAppId!)"
+                            use-loading
+                            :disabled="
+                                activeMirrorcAppInfo.meta.latest ===
+                                activeMirrorcAppInfo.expose.version
+                            "
+                        >
+                            更新项目
+                        </m-button>
+                    </template>
+                    <template v-else>
+                        <m-button
+                            v-if="activeMirrorcAppInfo.meta"
+                            :action="async () => requestExportApp(mirrorcAppId!)"
+                            use-loading
+                        >
+                            导出项目
+                        </m-button>
+                    </template>
+                </template>
             </div>
         </div>
     </div>

@@ -15,5 +15,13 @@ export type MirrorcAppInfo = {
     }
     meta?: {
         latest: string
+        // 最新的已下载版本, 用于增量
+        latestDone?: string
+
+        tarballs?: {
+            version: string
+            version_from?: string
+            filename: string
+        }[]
     }
 }

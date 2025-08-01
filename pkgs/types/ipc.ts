@@ -116,7 +116,7 @@ export type MainService = {
     'mirrorc.newApp': (rid: string) => boolean
     'mirrorc.delApp': (id: MirrorcAppId) => boolean
     'mirrorc.checkAppUpdate': (id: MirrorcAppId) => boolean
-    'mirrorc.exportApp': (id: MirrorcAppId, tag: string) => boolean
+    'mirrorc.exportApp': (id: MirrorcAppId) => boolean
 }
 
 export type RendererService = {

@@ -1,7 +1,7 @@
 import { GithubRepoInfo, KnownArch, KnownPlatform, ProjectId } from '@mfg/types'
 import axios from 'axios'
 import { safeStorage } from 'electron'
-import { existsSync } from 'fs'
+import { existsSync, statSync } from 'fs'
 import * as fs from 'fs/promises'
 import { Octokit } from 'octokit'
 import * as path from 'path'
@@ -93,6 +93,9 @@ export class MfgGithubManager {
             }
 
             mfgApp.config.github.repos.splice(repoIndex, 1)
+
+            await fs.rm(path.join(mfgApp.root, 'github', repo.id), { recursive: true })
+
             await mfgApp.saveConfig()
             return true
         }
@@ -190,8 +193,9 @@ export class MfgGithubManager {
                 recursive: true
             })
 
+            let downloaded = false
             const assetPath = path.join(rootFolder, 'tarballs', asset.name)
-            if (!existsSync(assetPath)) {
+            if (!existsSync(assetPath) || statSync(assetPath).size !== asset.size) {
                 const release = (
                     await axios({
                         url: asset.browser_download_url,
@@ -202,12 +206,18 @@ export class MfgGithubManager {
                     })
                 ).data as ArrayBuffer
                 await fs.writeFile(path.join(assetPath), Buffer.from(release))
+                downloaded = true
+            }
+
+            if (downloaded) {
+                await fs.rm(path.join(rootFolder, 'done'), { force: true })
+                await fs.rm(path.join(rootFolder, 'tree'), { force: true })
             }
 
             if (!existsSync(path.join(rootFolder, 'done'))) {
                 await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
 
-                if (!(await extractAuto(asset.name, path.join(rootFolder, 'tree')))) {
+                if (!(await extractAuto(assetPath, path.join(rootFolder, 'tree')))) {
                     globalThis.renderer.utils.showToast('error', '解压失败')
                     return false
                 }

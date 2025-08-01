@@ -14,6 +14,11 @@ const { githubRepoId, activeGithubRepoInfo } = useGithubRepo()
 const checkoutProcessing = ref(false)
 
 async function checkoutVersion(ver: string) {
+    if (ver === activeGithubRepoInfo.value?.expose?.version) {
+        // already latest
+        return
+    }
+
     checkoutProcessing.value = true
     await requestExportRepo(githubRepoId.value!, ver)
     checkoutProcessing.value = false

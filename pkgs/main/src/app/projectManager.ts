@@ -70,6 +70,13 @@ export class MfgProjectManager {
                 }
             }
 
+            if (project.mirrorc) {
+                const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === project.mirrorc)
+                if (app) {
+                    delete app.expose
+                }
+            }
+
             mfgApp.config.projects.splice(projectIndex, 1)
             await mfgApp.saveConfig()
 
