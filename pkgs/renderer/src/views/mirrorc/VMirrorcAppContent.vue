@@ -41,6 +41,12 @@ const { mirrorcAppId, activeMirrorcAppInfo } = useMirrorcApp()
                     </m-button>
                 </div>
             </template>
+            <template v-if="activeMirrorcAppInfo.meta?.latestDone">
+                <span> 已下载版本 </span>
+                <div class="flex items-center gap-2">
+                    <span> {{ activeMirrorcAppInfo.meta?.latestDone }} </span>
+                </div>
+            </template>
             <template v-if="activeMirrorcAppInfo.meta">
                 <span> 最新版本 </span>
                 <span> {{ activeMirrorcAppInfo.meta.latest }} </span>

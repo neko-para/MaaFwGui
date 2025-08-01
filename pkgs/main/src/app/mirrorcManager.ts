@@ -102,6 +102,8 @@ export class MfgMirrorcManager {
             }
 
             app.meta = {
+                ...app.meta,
+
                 latest: result.version_name
             }
             await mfgApp.saveConfig()
@@ -251,15 +253,17 @@ export class MfgMirrorcManager {
 
             if (isIncremental) {
                 // TODO: 复制一份现有的然后解压
+                globalThis.renderer.utils.showToast('error', '暂不支持增量更新')
+                return false
             } else {
                 if (!(await extractAuto(assetPath, path.join(rootFolder, 'tree')))) {
                     globalThis.renderer.utils.showToast('error', '解压失败')
                     return false
                 }
-                app.meta.latestDone = tag
                 await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())
             }
         }
+        app.meta.latestDone = tag
 
         if (app.expose) {
             const project = mfgApp.config.projects?.find(x => x.id === app.expose!.project)
