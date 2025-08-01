@@ -4,6 +4,7 @@ import type { GlobalConfig } from './config'
 import type { AdbDevice } from './device'
 import type { GithubRepoId, GithubRepoInfo } from './github'
 import type { LaunchId, LaunchStatus } from './launch'
+import type { MirrorcAppId, MirrorcAppInfo } from './mirrorc'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
 
@@ -111,6 +112,11 @@ export type MainService = {
     'mirrorc.hasToken': () => boolean
     'mirrorc.tryUpdateToken': (token: string) => boolean
     'mirrorc.cleanToken': () => void
+    'mirrorc.queryApp': () => MirrorcAppInfo[]
+    'mirrorc.newApp': (rid: string) => boolean
+    'mirrorc.delApp': (id: MirrorcAppId) => boolean
+    'mirrorc.checkAppUpdate': (id: MirrorcAppId) => boolean
+    'mirrorc.exportApp': (id: MirrorcAppId, tag: string) => boolean
 }
 
 export type RendererService = {

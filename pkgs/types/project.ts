@@ -1,4 +1,5 @@
 import type { GithubRepoId } from './github'
+import type { MirrorcAppId } from './mirrorc'
 
 export type ProjectId = string & { __brand: 'ProjectId' }
 
@@ -13,4 +14,5 @@ export type ProjectInfo = {
     path: string
 
     github?: GithubRepoId
+    mirrorc?: MirrorcAppId
 }

@@ -42,6 +42,23 @@ const { interfaceData } = useInterface(() => projectId.value)
                         </m-button>
                     </div>
                 </template>
+                <template v-if="activeProjectInfo.mirrorc">
+                    <span> 来源 </span>
+                    <div class="flex items-center gap-2">
+                        <span> MirrorChyan </span>
+                        <m-button
+                            @action="
+                                () => {
+                                    router.push({
+                                        path: `/mirrorc-app/${activeProjectInfo!.mirrorc}`
+                                    })
+                                }
+                            "
+                        >
+                            查看
+                        </m-button>
+                    </div>
+                </template>
             </template>
         </div>
     </div>

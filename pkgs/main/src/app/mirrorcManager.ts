@@ -1,6 +1,8 @@
+import { MirrorcAppInfo } from '@mfg/types'
 import { safeStorage } from 'electron'
 
 import { mirrorcErrorMsg, mirrorcRequest } from '../utils/mirrorc'
+import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
 
 export class MfgMirrorcManager {
@@ -9,7 +11,7 @@ export class MfgMirrorcManager {
             return !!this.authToken
         }
         globalThis.main.mirrorc.tryUpdateToken = async token => {
-            const result = await mirrorcRequest('MaaFramework', token)
+            const result = await mirrorcRequest('MaaFramework', { cdk: token })
             if (result && (typeof result !== 'string' || result === 'resource_quota_exhausted')) {
                 this.authToken = token
                 await mfgApp.saveConfig()
@@ -28,6 +30,91 @@ export class MfgMirrorcManager {
             this.authToken = undefined
             await mfgApp.saveConfig()
         }
+        globalThis.main.mirrorc.queryApp = () => {
+            return mfgApp.config.mirrorc?.apps ?? []
+        }
+        globalThis.main.mirrorc.newApp = async rid => {
+            if (!rid.length) {
+                globalThis.renderer.utils.showToast('error', '应用名称格式错误')
+                return false
+            }
+
+            mfgApp.config.mirrorc = mfgApp.config.mirrorc ?? {}
+            mfgApp.config.mirrorc.apps = mfgApp.config.mirrorc.apps ?? []
+            mfgApp.config.mirrorc.apps.push({
+                id: generateId(),
+
+                name: rid,
+
+                rid
+            })
+            await mfgApp.saveConfig()
+            return true
+        }
+        globalThis.main.mirrorc.delApp = async id => {
+            if (!mfgApp.config.mirrorc?.apps) {
+                globalThis.renderer.utils.showToast('error', '未找到指定应用')
+                return false
+            }
+
+            const appIndex = mfgApp.config.mirrorc.apps.findIndex(x => x.id === id) ?? -1
+            if (appIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定应用')
+                return false
+            }
+
+            const app = mfgApp.config.mirrorc.apps[appIndex]
+            if (app.expose) {
+                globalThis.renderer.utils.showToast('error', '应用已被导出')
+                return false
+            }
+
+            mfgApp.config.mirrorc.apps.splice(appIndex, 1)
+            await mfgApp.saveConfig()
+            return true
+        }
+        globalThis.main.mirrorc.checkAppUpdate = async id => {
+            const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === id)
+            if (!app) {
+                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
+                return false
+            }
+
+            const result = await mirrorcRequest(app.rid, {
+                cdk: this.authToken,
+                current_version: app.expose?.version
+            })
+            if (!result || typeof result === 'string') {
+                await globalThis.renderer.utils.showToast(
+                    'error',
+                    result ? mirrorcErrorMsg[result] : '未知错误'
+                )
+                return false
+            }
+
+            app.meta = {
+                latest: result.version_name
+            }
+            await mfgApp.saveConfig()
+            return true
+        }
+        globalThis.main.mirrorc.exportApp = async (id, tag) => {
+            const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === id)
+            if (!app) {
+                globalThis.renderer.utils.showToast('error', '未找到指定应用')
+                return false
+            }
+
+            return await this.checkoutVersion(app, tag)
+        }
+    }
+
+    async checkoutVersion(app: MirrorcAppInfo, tag: string) {
+        if (!app.meta) {
+            globalThis.renderer.utils.showToast('error', '应用无更新信息')
+            return false
+        }
+        return false
     }
 
     set authToken(token: string | undefined) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NCard, NInput, NModal, NSelect } from 'naive-ui'
+import { NButton, NCard, NInput, NModal, NPopselect, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -16,6 +16,26 @@ import {
 const router = useRouter()
 
 const { projectId } = useProject()
+
+const importOptions = [
+    { value: 'github', label: 'Github' },
+    { value: 'mirrorc', label: 'MirrorChyan' }
+] satisfies SelectMixedOption[]
+
+async function requestImport(type: 'github' | 'mirrorc') {
+    switch (type) {
+        case 'github':
+            router.push({
+                path: '/github-repo'
+            })
+            break
+        case 'mirrorc':
+            router.push({
+                path: '/mirrorc-app'
+            })
+            break
+    }
+}
 </script>
 
 <template>
@@ -32,17 +52,9 @@ const { projectId } = useProject()
         "
     >
         <template #actions>
-            <m-button
-                @action="
-                    () => {
-                        router.push({
-                            path: '/github-repo'
-                        })
-                    }
-                "
-            >
-                GH
-            </m-button>
+            <n-popselect trigger="hover" :options="importOptions" @update:value="requestImport">
+                <m-button> 管理 </m-button>
+            </n-popselect>
             <m-button :action="requestNewExternalProject" use-loading> 导入 </m-button>
         </template>
 

@@ -9,6 +9,7 @@ import MToastTracker from '@/components/MToastTracker.vue'
 import { theme, themeOverride } from './plugins/theme'
 import { syncDevices } from './states/device'
 import { syncRepos } from './states/github'
+import { syncApps } from './states/mirrorc'
 import { syncProfile } from './states/profile'
 import { syncProjects } from './states/project'
 
@@ -23,6 +24,7 @@ onMounted(async () => {
     syncProjects()
     syncDevices()
     syncRepos()
+    syncApps()
 })
 </script>
 

@@ -43,12 +43,16 @@ export const mirrorcErrorMsg: Record<MirrorChyanError, string> = {
 
 export async function mirrorcRequest(
     rid: string,
-    cdk?: string
+    option: {
+        cdk?: string
+        current_version?: string
+    }
 ): Promise<MirrorChyanReleaseData | MirrorChyanError | null> {
     const resp = await axios({
         url: `https://mirrorchyan.com/api/resources/${rid}/latest`,
         params: {
-            cdk,
+            cdk: option.cdk,
+            current_version: option.current_version,
             user_agent: 'MaaFwGui',
             os: process.platform,
             arch: process.arch

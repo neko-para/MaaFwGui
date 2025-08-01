@@ -136,7 +136,7 @@ export class MfgGithubManager {
         globalThis.main.github.exportRepo = async (id, tag) => {
             const repo = mfgApp.config.github?.repos?.find(x => x.id === id)
             if (!repo) {
-                globalThis.renderer.utils.showToast('warning', '未找到指定仓库')
+                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
                 return false
             }
 
