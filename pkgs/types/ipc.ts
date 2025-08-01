@@ -1,10 +1,9 @@
-import type * as maa from '@maaxyz/maa-node'
-
 import type { GlobalConfig } from './config'
 import type { AdbDevice } from './device'
 import type { GithubRepoId, GithubRepoInfo } from './github'
 import type { LaunchId, LaunchStatus } from './launch'
 import type { MirrorcAppId, MirrorcAppInfo } from './mirrorc'
+import type { Interface } from './pi'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
 
@@ -14,50 +13,6 @@ export type KnownArch = 'x64' | 'arm64'
 export type SystemInfo = {
     platform: KnownPlatform
     arch: KnownArch
-}
-
-export type Interface = {
-    controller: {
-        name: string
-        type: 'Adb' | 'Win32'
-        adb?: {
-            screencap?: maa.api.ScreencapOrInputMethods
-            input?: maa.api.ScreencapOrInputMethods
-            config?: unknown
-        }
-        win32?: {
-            class_regex?: string
-            window_regex?: string
-            screencap?: maa.api.ScreencapOrInputMethods
-            input?: maa.api.ScreencapOrInputMethods
-        }
-    }[]
-    resource: {
-        name: string
-        path: string | string[]
-    }[]
-    task: {
-        name: string
-        entry: string
-        pipeline_override?: unknown
-        option?: string[]
-    }[]
-    option?: Record<
-        string,
-        {
-            cases: {
-                name: string
-                pipeline_override?: unknown
-            }[]
-            default_case?: string
-        }
-    >
-    version?: string
-    message?: string
-    agent?: {
-        child_exec?: string
-        child_args?: string[]
-    }
 }
 
 export type MainService = {
