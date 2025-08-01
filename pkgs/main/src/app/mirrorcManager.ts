@@ -1,6 +1,6 @@
-import axios from 'axios'
 import { safeStorage } from 'electron'
 
+import { mirrorcErrorMsg, mirrorcRequest } from '../utils/mirrorc'
 import { mfgApp } from './app'
 
 export class MfgMirrorcManager {
@@ -9,52 +9,19 @@ export class MfgMirrorcManager {
             return !!this.authToken
         }
         globalThis.main.mirrorc.tryUpdateToken = async token => {
-            const resp = await axios({
-                url: 'https://mirrorchyan.com/api/resources/MaaFramework/latest',
-                params: {
-                    cdk: token,
-                    user_agent: 'MaaFwGui',
-                    os: process.platform,
-                    arch: process.arch
-                },
-                responseType: 'json',
-                validateStatus: () => true
-            })
-            console.log(resp.status, resp.data)
-            if (resp.status === 403 && resp.data.code === 7001) {
-                // 过期
-                await globalThis.renderer.utils.showToast('error', 'CDK已过期')
-                this.authToken = undefined
-                await mfgApp.saveConfig()
-                return false
-            } else if (resp.status === 403 && resp.data.code === 7002) {
-                // 无效
-                await globalThis.renderer.utils.showToast('error', 'CDK无效')
-                this.authToken = undefined
-                await mfgApp.saveConfig()
-                return false
-                // } else if (resp.status === 403 && resp.data.code === 7003) {
-                //     // 上限
-                //     await globalThis.renderer.utils.showToast('warning', 'CDK已达今日使用上限')
-                //     this.authToken = token
-                //     await mfgApp.saveConfig()
-                //     return true
-            } else if (resp.status === 403 && resp.data.code === 7004) {
-                // 类型错误
-                await globalThis.renderer.utils.showToast('error', 'CDK类型错误')
-                this.authToken = undefined
-                await mfgApp.saveConfig()
-                return false
-            } else if (resp.status === 403 && resp.data.code === 7005) {
-                // 封禁
-                await globalThis.renderer.utils.showToast('error', 'CDK已被封禁')
-                this.authToken = undefined
-                await mfgApp.saveConfig()
-                return false
-            } else {
+            const result = await mirrorcRequest('MaaFramework', token)
+            if (result && (typeof result !== 'string' || result === 'resource_quota_exhausted')) {
                 this.authToken = token
                 await mfgApp.saveConfig()
                 return true
+            } else {
+                await globalThis.renderer.utils.showToast(
+                    'error',
+                    result ? mirrorcErrorMsg[result] : '未知错误'
+                )
+                this.authToken = undefined
+                await mfgApp.saveConfig()
+                return false
             }
         }
         globalThis.main.mirrorc.cleanToken = async () => {
