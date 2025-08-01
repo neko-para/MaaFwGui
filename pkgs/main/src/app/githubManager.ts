@@ -211,7 +211,7 @@ export class MfgGithubManager {
 
             if (downloaded) {
                 await fs.rm(path.join(rootFolder, 'done'), { force: true })
-                await fs.rm(path.join(rootFolder, 'tree'), { force: true })
+                await fs.rm(path.join(rootFolder, 'tree'), { force: true, recursive: true })
             }
 
             if (!existsSync(path.join(rootFolder, 'done'))) {
