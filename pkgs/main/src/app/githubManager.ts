@@ -243,7 +243,7 @@ export class MfgGithubManager {
                     name: `${repo.name} <GITHUB>`,
                     path: path.join(rootFolder, 'tree', 'interface.json'),
                     type: 'managed',
-                    github: repo.id
+                    githubId: repo.id
                 })
 
                 repo.expose = {

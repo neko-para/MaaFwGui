@@ -63,15 +63,15 @@ export class MfgProjectManager {
                 }
             }
 
-            if (project.github) {
-                const repo = mfgApp.config.github?.repos?.find(x => x.id === project.github)
+            if (project.githubId) {
+                const repo = mfgApp.config.github?.repos?.find(x => x.id === project.githubId)
                 if (repo) {
                     delete repo.expose
                 }
             }
 
-            if (project.mirrorc) {
-                const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === project.mirrorc)
+            if (project.mirrorcId) {
+                const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === project.mirrorcId)
                 if (app) {
                     delete app.expose
                 }

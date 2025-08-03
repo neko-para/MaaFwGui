@@ -13,6 +13,16 @@ export type ProjectInfo = {
     type: ProjectManageType
     path: string
 
-    github?: GithubRepoId
-    mirrorc?: MirrorcAppId
+    githubId?: GithubRepoId
+    mirrorcId?: MirrorcAppId
+
+    channel?: 'stable' | 'beta' | 'alpha'
+    version?: string
+    github?: {
+        owner: string
+        repo: string
+    }
+    mirrorc?: {
+        rid: string
+    }
 }

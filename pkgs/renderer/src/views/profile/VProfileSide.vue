@@ -33,6 +33,15 @@ const { profileId } = useProfile()
             >
                 设置
             </m-button>
+            <m-button
+                @action="
+                    router.push({
+                        path: '/project'
+                    })
+                "
+            >
+                项目
+            </m-button>
             <m-button :action="requestNewProfile" use-loading> 新建 </m-button>
         </template>
 

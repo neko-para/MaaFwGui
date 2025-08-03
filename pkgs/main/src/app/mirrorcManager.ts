@@ -284,7 +284,7 @@ export class MfgMirrorcManager {
                 name: `${app.name} <MirrorChyan>`,
                 path: path.join(rootFolder, 'tree', 'interface.json'),
                 type: 'managed',
-                mirrorc: app.id
+                mirrorcId: app.id
             })
 
             app.expose = {
