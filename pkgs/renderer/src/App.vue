@@ -9,7 +9,6 @@ import MUpdateFoundTracker from '@/components/MUpdateFoundTracker.vue'
 
 import { theme, themeOverride } from './plugins/theme'
 import { syncDevices } from './states/device'
-import { syncApps } from './states/mirrorc'
 import { syncProfile } from './states/profile'
 import { syncProjects } from './states/project'
 
@@ -23,7 +22,6 @@ onMounted(async () => {
     syncProfile()
     syncProjects()
     syncDevices()
-    syncApps()
 })
 </script>
 

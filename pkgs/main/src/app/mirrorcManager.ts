@@ -1,4 +1,4 @@
-import { MirrorcAppInfo, ProjectId } from '@mfg/types'
+import { ProjectUpdateChannel } from '@mfg/types'
 import axios from 'axios'
 import * as crypto from 'crypto'
 import { safeStorage } from 'electron'
@@ -36,99 +36,13 @@ export class MfgMirrorcManager {
             this.authToken = undefined
             await mfgApp.saveConfig()
         }
-        globalThis.main.mirrorc.queryApp = () => {
-            return mfgApp.config.mirrorc?.apps ?? []
-        }
-        globalThis.main.mirrorc.newApp = async rid => {
-            if (!rid.length) {
-                globalThis.renderer.utils.showToast('error', '应用名称格式错误')
-                return false
-            }
-
-            mfgApp.config.mirrorc = mfgApp.config.mirrorc ?? {}
-            mfgApp.config.mirrorc.apps = mfgApp.config.mirrorc.apps ?? []
-            mfgApp.config.mirrorc.apps.push({
-                id: generateId(),
-
-                name: rid,
-
-                rid
-            })
-            await mfgApp.saveConfig()
-            return true
-        }
-        globalThis.main.mirrorc.delApp = async id => {
-            if (!mfgApp.config.mirrorc?.apps) {
-                globalThis.renderer.utils.showToast('error', '未找到指定应用')
-                return false
-            }
-
-            const appIndex = mfgApp.config.mirrorc.apps.findIndex(x => x.id === id) ?? -1
-            if (appIndex === -1) {
-                globalThis.renderer.utils.showToast('error', '未找到指定应用')
-                return false
-            }
-
-            const app = mfgApp.config.mirrorc.apps[appIndex]
-            if (app.expose) {
-                globalThis.renderer.utils.showToast('error', '应用已被导出')
-                return false
-            }
-
-            mfgApp.config.mirrorc.apps.splice(appIndex, 1)
-
-            await fs.rm(path.join(mfgApp.root, 'github', app.id), { recursive: true })
-
-            await mfgApp.saveConfig()
-            return true
-        }
-        globalThis.main.mirrorc.checkAppUpdate = async id => {
-            const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === id)
-            if (!app) {
-                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
-                return false
-            }
-
-            const result = await mirrorcRequest(app.rid, {
-                cdk: this.authToken,
-                current_version: app.meta?.latestDone
-            })
-            if (!result || typeof result === 'string') {
-                await globalThis.renderer.utils.showToast(
-                    'error',
-                    result ? mirrorcErrorMsg[result] : '未知错误'
-                )
-                return false
-            }
-
-            app.meta = {
-                ...app.meta,
-
-                latest: result.version_name
-            }
-            await mfgApp.saveConfig()
-            return true
-        }
-        globalThis.main.mirrorc.exportApp = async id => {
-            const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === id)
-            if (!app) {
-                globalThis.renderer.utils.showToast('error', '未找到指定应用')
-                return false
-            }
-
-            return await this.upgradeApp(app)
-        }
     }
 
-    async upgradeApp(app: MirrorcAppInfo) {
-        if (!app.meta) {
-            globalThis.renderer.utils.showToast('error', '应用无更新信息')
-            return false
-        }
-
-        const result = await mirrorcRequest(app.rid, {
+    async checkUpdate(rid: string, current: string | undefined, channel: ProjectUpdateChannel) {
+        const result = await mirrorcRequest(rid, {
             cdk: this.authToken,
-            current_version: app.meta.latestDone
+            current_version: current,
+            channel
         })
         if (!result || typeof result === 'string') {
             await globalThis.renderer.utils.showToast(
@@ -138,163 +52,18 @@ export class MfgMirrorcManager {
             return false
         }
 
-        const tag = result.version_name
-
-        if (!result.url) {
-            if (tag === app.meta.latestDone) {
-                globalThis.renderer.utils.showToast('success', '已是最新')
-                return true
-            } else {
-                globalThis.renderer.utils.showToast('warning', '无CDK无法进行更新')
-                return false
+        return {
+            version: result.version_name,
+            notes: result.release_note,
+            download: (): axios.AxiosRequestConfig | null => {
+                return result.url
+                    ? {
+                          url: result.url,
+                          responseType: 'arraybuffer'
+                      }
+                    : null
             }
         }
-
-        const isIncremental = result.update_type === 'incremental'
-
-        if (isIncremental && !app.meta.latestDone) {
-            globalThis.renderer.utils.showToast('error', '错误下发了增量包')
-            return false
-        }
-
-        const rootFolder = path.join(mfgApp.root, 'mirrorc', app.id, tag)
-        await fs.mkdir(path.join(rootFolder, 'tarballs'), {
-            recursive: true
-        })
-
-        let data: ArrayBuffer
-
-        app.meta.tarballs = app.meta.tarballs ?? []
-        let tarballIndex = app.meta.tarballs.find(x => {
-            if (x.version !== tag) {
-                return false
-            }
-            if (isIncremental) {
-                return x.version_from === app.meta!.latestDone
-            } else {
-                return x.version_from === undefined
-            }
-        })
-
-        let needDownload = true
-        if (tarballIndex) {
-            const asset = path.join(rootFolder, 'tarballs', tarballIndex.filename)
-            if (existsSync(asset)) {
-                const hasher = crypto.createHash('sha256')
-                hasher.update(await fs.readFile(asset))
-                const current = hasher.digest('hex')
-                if (current === result.sha256) {
-                    needDownload = false
-                } else {
-                    console.log('sha256 mismatch, current:', current, 'expected:', result.sha256)
-                }
-            }
-        } else {
-            tarballIndex = {
-                version: tag,
-                version_from: isIncremental ? app.meta.latestDone : undefined,
-                filename: ''
-            }
-            app.meta.tarballs.push(tarballIndex)
-        }
-
-        if (needDownload) {
-            let filename = `${app.rid}-${result.version_name}.zip`
-            if (isIncremental) {
-                filename = `from-${app.meta.latestDone}-${app.rid}-${result.version_name}.zip`
-            }
-            try {
-                const resp = await axios({
-                    url: result.url,
-                    responseType: 'arraybuffer'
-                })
-                data = resp.data
-
-                console.log(resp.headers['content-type'])
-
-                const disp = resp.headers['content-disposition']
-                if (disp) {
-                    const filenameRegex = /filename\*?=(?:UTF-8''|")?([^;"']+)/i
-                    const matches = filenameRegex.exec(disp)
-                    if (matches != null && matches[1]) {
-                        filename = decodeURIComponent(matches[1])
-                        console.log('mirrorc provide filename', filename)
-                        if (isIncremental && filename.includes(app.meta!.latestDone!)) {
-                            // 下载产物里面没带前序版本号
-                            filename = `from-${app.meta.latestDone}-${filename}`
-                        }
-                    }
-                }
-            } catch (err) {
-                globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
-                return false
-            }
-
-            if (tarballIndex.filename !== filename) {
-                const oldAsset = path.join(rootFolder, 'tarballs', tarballIndex.filename)
-                if (tarballIndex.filename.length > 0 && existsSync(oldAsset)) {
-                    await fs.unlink(oldAsset)
-                }
-                tarballIndex.filename = filename
-            }
-
-            await fs.writeFile(path.join(rootFolder, 'tarballs', filename), Buffer.from(data))
-        }
-
-        const assetPath = path.join(rootFolder, 'tarballs', tarballIndex.filename)
-
-        if (needDownload) {
-            await fs.rm(path.join(rootFolder, 'done'), { force: true })
-            await fs.rm(path.join(rootFolder, 'tree'), { force: true, recursive: true })
-        }
-
-        if (!existsSync(path.join(rootFolder, 'done'))) {
-            await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
-
-            if (isIncremental) {
-                // TODO: 复制一份现有的然后解压
-                globalThis.renderer.utils.showToast('error', '暂不支持增量更新')
-                return false
-            } else {
-                if (!(await extractAuto(assetPath, path.join(rootFolder, 'tree')))) {
-                    globalThis.renderer.utils.showToast('error', '解压失败')
-                    return false
-                }
-                await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())
-            }
-        }
-        app.meta.latestDone = tag
-
-        if (app.expose) {
-            const project = mfgApp.config.projects?.find(x => x.id === app.expose!.project)
-            if (!project) {
-                delete app.expose
-            } else {
-                app.expose.version = tag
-                project.path = path.join(rootFolder, 'tree', 'interface.json')
-            }
-        }
-
-        if (!app.expose) {
-            const pid = generateId<ProjectId>()
-
-            mfgApp.config.projects = mfgApp.config.projects ?? []
-            mfgApp.config.projects.push({
-                id: pid,
-                name: `${app.name} <MirrorChyan>`,
-                path: path.join(rootFolder, 'tree', 'interface.json'),
-                type: 'managed',
-                mirrorcId: app.id
-            })
-
-            app.expose = {
-                project: pid,
-                version: tag
-            }
-        }
-
-        await mfgApp.saveConfig()
-        return true
     }
 
     set authToken(token: string | undefined) {

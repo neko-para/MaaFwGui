@@ -1,11 +1,4 @@
-import type {
-    AdbDevice,
-    GlobalConfig,
-    MirrorcAppInfo,
-    ProfileInfo,
-    ProjectInfo,
-    SecretConfig
-} from '@mfg/types'
+import type { AdbDevice, GlobalConfig, ProfileInfo, ProjectInfo, SecretConfig } from '@mfg/types'
 
 export type AppConfig = {
     config?: GlobalConfig
@@ -14,7 +7,4 @@ export type AppConfig = {
     profiles?: ProfileInfo[]
     projects?: ProjectInfo[]
     devices?: AdbDevice[]
-    mirrorc?: {
-        apps?: MirrorcAppInfo[]
-    }
 }

@@ -1,7 +1,6 @@
 import type { GlobalConfig } from './config'
 import type { AdbDevice } from './device'
 import type { LaunchId, LaunchStatus } from './launch'
-import type { MirrorcAppId, MirrorcAppInfo } from './mirrorc'
 import type { Interface } from './pi'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
@@ -49,9 +48,12 @@ export type MainService = {
     'project.newExternal': () => boolean
     'project.newArchive': () => boolean
     'project.newGithub': (url: string) => boolean
+    'project.newMirrorc': (rid: string) => boolean
     'project.del': (id: ProjectId) => boolean
     'project.delGithub': (id: ProjectId) => boolean
     'project.bindGithub': (id: ProjectId, url: string) => boolean
+    'project.delMirrorc': (id: ProjectId) => boolean
+    'project.bindMirrorc': (id: ProjectId, rid: string) => boolean
     'project.checkUpdate': (id: ProjectId, via: 'github' | 'mirrorc') => boolean
     'project.load': (id: ProjectId) => ProjectInfo | null
     'project.loadInterface': (id: ProjectId) => Interface | null
@@ -66,11 +68,6 @@ export type MainService = {
     'mirrorc.hasToken': () => boolean
     'mirrorc.tryUpdateToken': (token: string) => boolean
     'mirrorc.cleanToken': () => void
-    'mirrorc.queryApp': () => MirrorcAppInfo[]
-    'mirrorc.newApp': (rid: string) => boolean
-    'mirrorc.delApp': (id: MirrorcAppId) => boolean
-    'mirrorc.checkAppUpdate': (id: MirrorcAppId) => boolean
-    'mirrorc.exportApp': (id: MirrorcAppId) => boolean
 }
 
 export type RendererService = {

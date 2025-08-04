@@ -2,8 +2,6 @@ import type { Interface, ProjectId, ProjectInfo } from '@mfg/types'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { syncApps } from './mirrorc'
-
 export const projectInfo = ref<ProjectInfo[]>([])
 
 export async function requestNewExternalProject() {
@@ -21,23 +19,37 @@ export async function requestNewGithubProject(url: string) {
     await syncProjects()
 }
 
+export async function requestNewMirrorcProject(rid: string) {
+    await window.main.project.newMirrorc(rid)
+    await syncProjects()
+}
+
 export async function requestDelProject(pid: ProjectId) {
     await window.main.project.del(pid)
     await syncProjects()
-    await syncApps()
 }
 
 export async function syncProjects() {
     projectInfo.value = await window.main.project.query()
 }
 
-export async function requestDelGithub(pid: ProjectId) {
+export async function requestDelGithubProject(pid: ProjectId) {
     await window.main.project.delGithub(pid)
     await syncProjects()
 }
 
 export async function requestBindGithubProject(pid: ProjectId, url: string) {
     await window.main.project.bindGithub(pid, url)
+    await syncProjects()
+}
+
+export async function requestDelMirrorcProject(pid: ProjectId) {
+    await window.main.project.delMirrorc(pid)
+    await syncProjects()
+}
+
+export async function requestBindMirrorcProject(pid: ProjectId, rid: string) {
+    await window.main.project.bindMirrorc(pid, rid)
     await syncProjects()
 }
 

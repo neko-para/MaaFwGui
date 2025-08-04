@@ -1,3 +1,4 @@
+import { ProjectUpdateChannel } from '@mfg/types'
 import axios from 'axios'
 
 export type MirrorChyanReleaseData = {
@@ -46,6 +47,7 @@ export async function mirrorcRequest(
     option: {
         cdk?: string
         current_version?: string
+        channel?: ProjectUpdateChannel
     }
 ): Promise<MirrorChyanReleaseData | MirrorChyanError | null> {
     const resp = await axios({
@@ -53,6 +55,7 @@ export async function mirrorcRequest(
         params: {
             cdk: option.cdk,
             current_version: option.current_version,
+            channel: option.channel,
             user_agent: 'MaaFwGui',
             os: process.platform,
             arch: process.arch

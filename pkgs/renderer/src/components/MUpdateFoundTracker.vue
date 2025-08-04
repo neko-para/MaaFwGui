@@ -39,7 +39,7 @@ onUnmounted(() => {
             </n-scrollbar>
 
             <template #footer>
-                <n-button @click="waitInstall(true)"> 安装 </n-button>
+                <n-button @click="waitInstall(true)"> 更新 </n-button>
             </template>
         </n-card>
     </n-modal>

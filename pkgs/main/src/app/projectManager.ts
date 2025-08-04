@@ -21,6 +21,27 @@ function extractGithubUrl(url: string) {
     }
 }
 
+function guessExtension(resp: axios.AxiosResponse<any, any>) {
+    const disp = resp.headers['content-disposition']
+    if (disp) {
+        const filenameRegex = /filename\*?=(?:UTF-8''|")?([^;"']+)/i
+        const matches = filenameRegex.exec(disp)
+        if (matches != null && matches[1]) {
+            const filename = decodeURIComponent(matches[1])
+            return filename.substring(filename.indexOf('.'))
+        }
+    }
+
+    switch (resp.headers['content-type']) {
+        case 'application/zip':
+            return '.zip'
+        case 'application/x-gtar':
+            return '.tar.gz'
+    }
+
+    return '.zip'
+}
+
 export class MfgProjectManager {
     async init() {
         globalThis.main.project.query = async () => {
@@ -99,6 +120,36 @@ export class MfgProjectManager {
             await fs.unlink(file)
             return res
         }
+        globalThis.main.project.newMirrorc = async rid => {
+            const result = await mfgApp.mirrorcManager.checkUpdate(rid, undefined, 'stable')
+            if (!result) {
+                return false
+            }
+
+            const cfg = result.download()
+            if (!cfg) {
+                globalThis.renderer.utils.showToast('warning', '无CDK无法进行下载')
+                return false
+            }
+
+            let data: ArrayBuffer
+            let extension: string | null = null
+            try {
+                const resp = await axios(cfg)
+                data = resp.data
+                extension = guessExtension(resp)
+            } catch (err) {
+                globalThis.renderer.utils.showToast('error', `下载失败: ${err}`)
+                return false
+            }
+
+            await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
+            const file = path.join(mfgApp.root, 'temp', generateId() + extension)
+            await fs.writeFile(file, Buffer.from(data))
+            const res = await this.importArchive(file, result.version)
+            await fs.unlink(file)
+            return res
+        }
         globalThis.main.project.del = async id => {
             if (!mfgApp.config.projects) {
                 globalThis.renderer.utils.showToast('error', '未找到指定项目')
@@ -124,13 +175,6 @@ export class MfgProjectManager {
 
             if (project.type === 'managed') {
                 await fs.rm(path.join(mfgApp.root, 'projects', project.id), { recursive: true })
-            }
-
-            if (project.mirrorcId) {
-                const app = mfgApp.config.mirrorc?.apps?.find(x => x.id === project.mirrorcId)
-                if (app) {
-                    delete app.expose
-                }
             }
 
             mfgApp.config.projects.splice(projectIndex, 1)
@@ -178,6 +222,43 @@ export class MfgProjectManager {
             }
 
             project.github = repo
+            await mfgApp.saveConfig()
+            return true
+        }
+        globalThis.main.project.delMirrorc = async id => {
+            if (!mfgApp.config.projects) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return false
+            }
+
+            const project = mfgApp.config.projects.find(x => x.id === id)
+            if (!project) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return false
+            }
+
+            delete project.mirrorc
+            await mfgApp.saveConfig()
+            return true
+        }
+        globalThis.main.project.bindMirrorc = async (id, rid) => {
+            if (!mfgApp.config.projects) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return false
+            }
+
+            const project = mfgApp.config.projects.find(x => x.id === id)
+            if (!project) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return false
+            }
+
+            if (project.mirrorc) {
+                globalThis.renderer.utils.showToast('error', '已关联到Mirrorc')
+                return false
+            }
+
+            project.mirrorc = { rid }
             await mfgApp.saveConfig()
             return true
         }
@@ -248,6 +329,67 @@ export class MfgProjectManager {
 
                 return true
             } else if (via === 'mirrorc') {
+                if (!project.mirrorc) {
+                    globalThis.renderer.utils.showToast('error', '未关联到Github')
+                    return false
+                }
+
+                const result = await mfgApp.mirrorcManager.checkUpdate(
+                    project.mirrorc.rid,
+                    undefined, // TODO: 支持增量更新
+                    project.channel ?? 'stable'
+                )
+                if (!result) {
+                    return false
+                }
+
+                if (result.version === project.version) {
+                    globalThis.renderer.utils.showToast('success', '已是最新版本')
+                    return true
+                }
+
+                if (
+                    !(await globalThis.renderer.project.updateFound(
+                        result.version,
+                        result.notes ?? '无更新日志'
+                    ))
+                ) {
+                    return true
+                }
+
+                const cfg = result.download()
+                if (!cfg) {
+                    globalThis.renderer.utils.showToast('warning', '无CDK无法进行下载')
+                    return false
+                }
+
+                let data: ArrayBuffer
+                let extension: string | null = null
+                try {
+                    const resp = await axios(cfg)
+                    data = resp.data
+                    extension = guessExtension(resp)
+                } catch (err) {
+                    globalThis.renderer.utils.showToast('error', `下载失败: ${err}`)
+                    return false
+                }
+
+                await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
+                const file = path.join(mfgApp.root, 'temp', generateId() + extension)
+                await fs.writeFile(file, Buffer.from(data))
+                const tempRoot = path.join(mfgApp.root, 'temp', project.id)
+                await fs.mkdir(tempRoot, { recursive: true })
+                if (!(await extractAuto(file, tempRoot))) {
+                    globalThis.renderer.utils.showToast('error', '解压失败')
+                    await fs.unlink(file)
+                    return false
+                }
+                await fs.unlink(file)
+                await fs.rm(path.join(mfgApp.root, 'projects', project.id), { recursive: true })
+                await fs.rename(tempRoot, path.join(mfgApp.root, 'projects', project.id))
+                project.version = result.version
+                await mfgApp.saveConfig()
+
                 return false
             } else {
                 return false

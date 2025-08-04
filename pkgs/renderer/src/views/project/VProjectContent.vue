@@ -2,11 +2,19 @@
 import { ref } from 'vue'
 
 import MAddGithub from '@/components/MAddGithub.vue'
+import MAddMirrorc from '@/components/MAddMirrorc.vue'
 import MButton from '@/components/MButton.vue'
 import MPath from '@/components/MPath.vue'
-import { requestCheckUpdate, requestDelGithub, useInterface, useProject } from '@/states/project'
+import {
+    requestCheckUpdate,
+    requestDelGithubProject,
+    requestDelMirrorcProject,
+    useInterface,
+    useProject
+} from '@/states/project'
 
 const addGithubEl = ref<InstanceType<typeof MAddGithub> | null>(null)
+const addMirrorcEl = ref<InstanceType<typeof MAddMirrorc> | null>(null)
 
 const { activeProjectInfo, projectId } = useProject()
 
@@ -15,6 +23,7 @@ const { interfaceData } = useInterface(() => projectId.value)
 
 <template>
     <m-add-github :project="projectId" ref="addGithubEl"></m-add-github>
+    <m-add-mirrorc ref="addMirrorcEl"></m-add-mirrorc>
 
     <div class="m-4 flex flex-col gap-2">
         <div class="flex items-center gap-2">
@@ -46,7 +55,10 @@ const { interfaceData } = useInterface(() => projectId.value)
                         >
                             检查更新
                         </m-button>
-                        <m-button :action="async () => requestDelGithub(projectId!)" use-loading>
+                        <m-button
+                            :action="async () => requestDelGithubProject(projectId!)"
+                            use-loading
+                        >
                             移除
                         </m-button>
                     </template>
@@ -56,15 +68,28 @@ const { interfaceData } = useInterface(() => projectId.value)
                 </div>
 
                 <span> MirrorChyan </span>
-                <template v-if="activeProjectInfo.mirrorc">
-                    <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <template v-if="activeProjectInfo.mirrorc">
                         <span>
                             {{ activeProjectInfo.mirrorc.rid }}
                         </span>
-                        <m-button use-loading> 检查更新 </m-button>
-                    </div>
-                </template>
-                <template v-else> 添加... </template>
+                        <m-button
+                            :action="async () => requestCheckUpdate(projectId!, 'mirrorc')"
+                            use-loading
+                        >
+                            检查更新
+                        </m-button>
+                        <m-button
+                            :action="async () => requestDelMirrorcProject(projectId!)"
+                            use-loading
+                        >
+                            移除
+                        </m-button>
+                    </template>
+                    <template v-else>
+                        <m-button :action="addMirrorcEl?.addMirrorc" use-loading> 添加 </m-button>
+                    </template>
+                </div>
             </template>
         </div>
     </div>

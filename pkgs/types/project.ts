@@ -1,5 +1,3 @@
-import type { MirrorcAppId } from './mirrorc'
-
 export type ProjectId = string & { __brand: 'ProjectId' }
 
 export type ProjectManageType = 'external' | 'managed'
@@ -13,8 +11,6 @@ export type ProjectInfo = {
 
     type: ProjectManageType
     path: string
-
-    mirrorcId?: MirrorcAppId
 
     version?: string
     channel?: ProjectUpdateChannel

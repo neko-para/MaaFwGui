@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { NButton, NCard, NInput, NModal, NPopselect, NSelect } from 'naive-ui'
+import { NPopselect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import MAddGithub from '@/components/MAddGithub.vue'
+import MAddMirrorc from '@/components/MAddMirrorc.vue'
 import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
 import {
@@ -21,6 +22,7 @@ const router = useRouter()
 const { projectId } = useProject()
 
 const addGithubEl = ref<InstanceType<typeof MAddGithub> | null>(null)
+const addMirrorcEl = ref<InstanceType<typeof MAddMirrorc> | null>(null)
 
 const loading = ref(false)
 
@@ -40,9 +42,7 @@ async function requestImport(type: 'archive' | 'github' | 'mirrorc') {
             await addGithubEl.value?.addGithub()
             break
         case 'mirrorc':
-            router.push({
-                path: '/mirrorc-app'
-            })
+            await addMirrorcEl.value?.addMirrorc()
             break
     }
     loading.value = false
@@ -51,6 +51,7 @@ async function requestImport(type: 'archive' | 'github' | 'mirrorc') {
 
 <template>
     <m-add-github ref="addGithubEl"></m-add-github>
+    <m-add-mirrorc ref="addMirrorcEl"></m-add-mirrorc>
 
     <l-generic-side
         title="项目列表"
