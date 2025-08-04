@@ -1,6 +1,7 @@
 import { Interface, ProjectId, ProjectInfo } from '@mfg/types'
 import axios from 'axios'
 import { dialog } from 'electron'
+import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import * as path from 'path'
 
@@ -311,19 +312,10 @@ export class MfgProjectManager {
                     return false
                 }
 
-                await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
-                const file = path.join(mfgApp.root, 'temp', generateId() + result.extension)
-                await fs.writeFile(file, Buffer.from(data))
-                const tempRoot = path.join(mfgApp.root, 'temp', project.id)
-                await fs.mkdir(tempRoot, { recursive: true })
-                if (!(await extractAuto(file, tempRoot))) {
-                    globalThis.renderer.utils.showToast('error', '解压失败')
-                    await fs.unlink(file)
+                if (!(await this.replaceArchive(project.id, data, result.extension))) {
                     return false
                 }
-                await fs.unlink(file)
-                await fs.rm(path.join(mfgApp.root, 'projects', project.id), { recursive: true })
-                await fs.rename(tempRoot, path.join(mfgApp.root, 'projects', project.id))
+
                 project.version = result.version
                 await mfgApp.saveConfig()
 
@@ -336,7 +328,7 @@ export class MfgProjectManager {
 
                 const result = await mfgApp.mirrorcManager.checkUpdate(
                     project.mirrorc.rid,
-                    undefined, // TODO: 支持增量更新
+                    project.version,
                     project.channel ?? 'stable'
                 )
                 if (!result) {
@@ -374,23 +366,20 @@ export class MfgProjectManager {
                     return false
                 }
 
-                await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
-                const file = path.join(mfgApp.root, 'temp', generateId() + extension)
-                await fs.writeFile(file, Buffer.from(data))
-                const tempRoot = path.join(mfgApp.root, 'temp', project.id)
-                await fs.mkdir(tempRoot, { recursive: true })
-                if (!(await extractAuto(file, tempRoot))) {
-                    globalThis.renderer.utils.showToast('error', '解压失败')
-                    await fs.unlink(file)
-                    return false
+                if (result.incremental) {
+                    if (!(await this.applyIncreArchive(project.id, data, extension))) {
+                        return false
+                    }
+                } else {
+                    if (!(await this.replaceArchive(project.id, data, extension))) {
+                        return false
+                    }
                 }
-                await fs.unlink(file)
-                await fs.rm(path.join(mfgApp.root, 'projects', project.id), { recursive: true })
-                await fs.rename(tempRoot, path.join(mfgApp.root, 'projects', project.id))
+
                 project.version = result.version
                 await mfgApp.saveConfig()
 
-                return false
+                return true
             } else {
                 return false
             }
@@ -453,6 +442,74 @@ export class MfgProjectManager {
         mfgApp.config.projects = mfgApp.config.projects ?? []
         mfgApp.config.projects.push(projectInfo)
         await mfgApp.saveConfig()
+        return true
+    }
+
+    async replaceArchive(pid: ProjectId, data: ArrayBuffer, ext: string) {
+        await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
+        const file = path.join(mfgApp.root, 'temp', generateId() + ext)
+        await fs.writeFile(file, Buffer.from(data))
+        const tempRoot = path.join(mfgApp.root, 'temp', pid)
+        await fs.mkdir(tempRoot, { recursive: true })
+        if (!(await extractAuto(file, tempRoot))) {
+            globalThis.renderer.utils.showToast('error', '解压失败')
+            await fs.unlink(file)
+            return false
+        }
+        await fs.unlink(file)
+
+        await fs.rm(path.join(mfgApp.root, 'projects', pid), { recursive: true })
+        await fs.rename(tempRoot, path.join(mfgApp.root, 'projects', pid))
+
+        return true
+    }
+
+    async applyIncreArchive(pid: ProjectId, data: ArrayBuffer, ext: string) {
+        await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
+        const file = path.join(mfgApp.root, 'temp', generateId() + ext)
+        await fs.writeFile(file, Buffer.from(data))
+        const tempRoot = path.join(mfgApp.root, 'temp', pid)
+        await fs.mkdir(tempRoot, { recursive: true })
+        if (!(await extractAuto(file, tempRoot))) {
+            globalThis.renderer.utils.showToast('error', '解压失败')
+            await fs.unlink(file)
+            return false
+        }
+        await fs.unlink(file)
+
+        if (!existsSync(path.join(tempRoot, 'changes.json'))) {
+            await fs.rm(tempRoot, { recursive: true })
+            return false
+        }
+        let meta: {
+            added?: string[]
+            deleted?: string[]
+            modified?: string[]
+        }
+        try {
+            meta = JSON.parse(await fs.readFile(path.join(tempRoot, 'changes.json'), 'utf8'))
+        } catch {
+            await fs.rm(tempRoot, { recursive: true })
+            return false
+        }
+
+        const projRoot = path.join(mfgApp.root, 'projects', pid)
+        for (const file of [
+            ...(meta.added ?? []),
+            ...(meta.deleted ?? []),
+            ...(meta.modified ?? [])
+        ]) {
+            const from = path.join(tempRoot, file)
+            const to = path.join(projRoot, file)
+            if (existsSync(to)) {
+                await fs.rm(to, { recursive: true })
+            }
+            if (existsSync(from)) {
+                await fs.mkdir(path.dirname(to), { recursive: true })
+                await fs.rename(from, to)
+            }
+        }
+
         return true
     }
 

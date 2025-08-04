@@ -55,6 +55,7 @@ export class MfgMirrorcManager {
         return {
             version: result.version_name,
             notes: result.release_note,
+            incremental: result.update_type === 'incremental',
             download: (): axios.AxiosRequestConfig | null => {
                 return result.url
                     ? {
