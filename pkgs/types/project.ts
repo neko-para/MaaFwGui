@@ -1,9 +1,10 @@
-import type { GithubRepoId } from './github'
 import type { MirrorcAppId } from './mirrorc'
 
 export type ProjectId = string & { __brand: 'ProjectId' }
 
 export type ProjectManageType = 'external' | 'managed'
+
+export type ProjectUpdateChannel = 'stable' | 'beta' | 'alpha'
 
 export type ProjectInfo = {
     id: ProjectId
@@ -13,11 +14,10 @@ export type ProjectInfo = {
     type: ProjectManageType
     path: string
 
-    githubId?: GithubRepoId
     mirrorcId?: MirrorcAppId
 
-    channel?: 'stable' | 'beta' | 'alpha'
     version?: string
+    channel?: ProjectUpdateChannel
     github?: {
         owner: string
         repo: string

@@ -1,4 +1,4 @@
-import { GithubRepoInfo, KnownArch, KnownPlatform, ProjectId } from '@mfg/types'
+import { KnownArch, KnownPlatform, ProjectId, ProjectUpdateChannel } from '@mfg/types'
 import axios from 'axios'
 import { safeStorage } from 'electron'
 import { existsSync, statSync } from 'fs'
@@ -50,120 +50,37 @@ export class MfgGithubManager {
             this.authToken = undefined
             await mfgApp.saveConfig()
         }
-        globalThis.main.github.queryRepo = () => {
-            return mfgApp.config.github?.repos ?? []
-        }
-        globalThis.main.github.newRepo = async url => {
-            const match = /^https:\/\/github.com\/(.+)\/(.+)(?:\.git|\/)?$/.exec(url)
-            if (!match) {
-                globalThis.renderer.utils.showToast('error', '仓库地址格式错误')
-                return false
-            }
-
-            mfgApp.config.github = mfgApp.config.github ?? {}
-            mfgApp.config.github.repos = mfgApp.config.github.repos ?? []
-            mfgApp.config.github.repos.push({
-                id: generateId(),
-
-                name: match[2],
-
-                url,
-                owner: match[1],
-                repo: match[2]
-            })
-            await mfgApp.saveConfig()
-            return true
-        }
-        globalThis.main.github.delRepo = async id => {
-            if (!mfgApp.config.github?.repos) {
-                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
-                return false
-            }
-
-            const repoIndex = mfgApp.config.github.repos.findIndex(x => x.id === id) ?? -1
-            if (repoIndex === -1) {
-                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
-                return false
-            }
-
-            const repo = mfgApp.config.github.repos[repoIndex]
-            if (repo.expose) {
-                globalThis.renderer.utils.showToast('error', '仓库已被导出')
-                return false
-            }
-
-            mfgApp.config.github.repos.splice(repoIndex, 1)
-
-            await fs.rm(path.join(mfgApp.root, 'github', repo.id), { recursive: true })
-
-            await mfgApp.saveConfig()
-            return true
-        }
-        globalThis.main.github.checkRepoUpdate = async id => {
-            const repo = mfgApp.config.github?.repos?.find(x => x.id === id)
-            if (!repo) {
-                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
-                return false
-            }
-
-            const octokit = new Octokit({
-                auth: this.authToken
-            })
-
-            try {
-                const versions = (
-                    await octokit.rest.repos.listReleases({
-                        owner: repo.owner,
-                        repo: repo.repo,
-                        headers: genericHeaders
-                    })
-                ).data.map(x => x.tag_name)
-                const latest = (
-                    await octokit.rest.repos.getLatestRelease({
-                        owner: repo.owner,
-                        repo: repo.repo,
-                        headers: genericHeaders
-                    })
-                ).data.tag_name
-                repo.meta = {
-                    versions,
-                    latest
-                }
-                await mfgApp.saveConfig()
-                return true
-            } catch (err) {
-                globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
-                return false
-            }
-        }
-        globalThis.main.github.exportRepo = async (id, tag) => {
-            const repo = mfgApp.config.github?.repos?.find(x => x.id === id)
-            if (!repo) {
-                globalThis.renderer.utils.showToast('error', '未找到指定仓库')
-                return false
-            }
-
-            return await this.checkoutVersion(repo, tag)
-        }
     }
 
-    async checkoutVersion(repo: GithubRepoInfo, tag: string) {
-        if (!repo.meta) {
-            globalThis.renderer.utils.showToast('error', '仓库无更新信息')
-            return false
-        }
-
+    async checkUpdate(owner: string, repo: string, channel: ProjectUpdateChannel) {
         const octokit = new Octokit({
             auth: this.authToken
         })
 
         try {
-            const resp = await octokit.rest.repos.getReleaseByTag({
-                owner: repo.owner,
-                repo: repo.repo,
-                tag: tag,
-                headers: genericHeaders
+            const releases = await octokit.rest.repos.listReleases({
+                owner,
+                repo
             })
+
+            const release = releases.data.find(rel => {
+                if (/alpha/.test(rel.tag_name)) {
+                    if (channel !== 'alpha') {
+                        return false
+                    }
+                }
+                if (/beta/.test(rel.tag_name)) {
+                    if (channel !== 'beta') {
+                        return false
+                    }
+                }
+                return true
+            })
+
+            if (!release) {
+                globalThis.renderer.utils.showToast('error', '未找到 release')
+                return null
+            }
 
             const platNames: Record<KnownPlatform, RegExp> = {
                 win32: /[^r]win(dows|32)?/,
@@ -174,89 +91,42 @@ export class MfgGithubManager {
                 x64: /x86(_64)?|x64|amd64/,
                 arm64: /arm(64)?|aarch64/
             }
-            const assets = resp.data.assets.filter(x => {
+            const assets = release.assets.filter(x => {
                 return (
                     platNames[process.platform as KnownPlatform].test(x.name) &&
                     archNames[process.arch as KnownArch].test(x.name)
                 )
             })
-            if (assets.length !== 1) {
+
+            if (assets.length > 1) {
                 // TODO: ask user to choose
                 console.log(assets.map(x => x.name))
                 globalThis.renderer.utils.showToast('error', '找到多个可能的制品')
-                return false
+                return null
+            } else if (assets.length === 0) {
+                globalThis.renderer.utils.showToast('error', '未找到制品')
+                return null
             }
+
             const asset = assets[0]
 
-            const rootFolder = path.join(mfgApp.root, 'github', repo.id, tag)
-            await fs.mkdir(path.join(rootFolder, 'tarballs'), {
-                recursive: true
-            })
-
-            let downloaded = false
-            const assetPath = path.join(rootFolder, 'tarballs', asset.name)
-            if (!existsSync(assetPath) || statSync(assetPath).size !== asset.size) {
-                const release = (
-                    await axios({
+            return {
+                version: release.tag_name,
+                notes: release.body ?? release.body_text,
+                extension: asset.name.replace(/^[^.]+/, ''),
+                download: (): axios.AxiosRequestConfig => {
+                    return {
                         url: asset.browser_download_url,
                         responseType: 'arraybuffer',
                         headers: {
                             Authorization: this.authToken ? `Bear ${this.authToken}` : undefined
                         }
-                    })
-                ).data as ArrayBuffer
-                await fs.writeFile(path.join(assetPath), Buffer.from(release))
-                downloaded = true
-            }
-
-            if (downloaded) {
-                await fs.rm(path.join(rootFolder, 'done'), { force: true })
-                await fs.rm(path.join(rootFolder, 'tree'), { force: true, recursive: true })
-            }
-
-            if (!existsSync(path.join(rootFolder, 'done'))) {
-                await fs.mkdir(path.join(rootFolder, 'tree'), { recursive: true })
-
-                if (!(await extractAuto(assetPath, path.join(rootFolder, 'tree')))) {
-                    globalThis.renderer.utils.showToast('error', '解压失败')
-                    return false
-                }
-                await fs.writeFile(path.join(rootFolder, 'done'), Date.now().toString())
-            }
-
-            if (repo.expose) {
-                const project = mfgApp.config.projects?.find(x => x.id === repo.expose!.project)
-                if (!project) {
-                    delete repo.expose
-                } else {
-                    repo.expose.version = tag
-                    project.path = path.join(rootFolder, 'tree', 'interface.json')
+                    }
                 }
             }
-
-            if (!repo.expose) {
-                const pid = generateId<ProjectId>()
-
-                mfgApp.config.projects = mfgApp.config.projects ?? []
-                mfgApp.config.projects.push({
-                    id: pid,
-                    name: `${repo.name} <GITHUB>`,
-                    path: path.join(rootFolder, 'tree', 'interface.json'),
-                    type: 'managed',
-                    githubId: repo.id
-                })
-
-                repo.expose = {
-                    project: pid,
-                    version: tag
-                }
-            }
-
-            await mfgApp.saveConfig()
-            return true
         } catch (err) {
             globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
-            return false
+            return null
         }
     }
 

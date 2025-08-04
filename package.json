@@ -24,6 +24,8 @@
         "electron": "^37.2.3",
         "electron-extension-installer": "^2.0.0",
         "esbuild": "^0.25.8",
+        "github-markdown-css": "^5.8.1",
+        "marked": "^16.1.2",
         "naive-ui": "^2.42.0",
         "octokit": "^5.0.3",
         "prettier": "^3.6.2",

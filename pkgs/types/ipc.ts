@@ -1,6 +1,5 @@
 import type { GlobalConfig } from './config'
 import type { AdbDevice } from './device'
-import type { GithubRepoId, GithubRepoInfo } from './github'
 import type { LaunchId, LaunchStatus } from './launch'
 import type { MirrorcAppId, MirrorcAppInfo } from './mirrorc'
 import type { Interface } from './pi'
@@ -48,7 +47,12 @@ export type MainService = {
 
     'project.query': () => ProjectInfo[]
     'project.newExternal': () => boolean
+    'project.newArchive': () => boolean
+    'project.newGithub': (url: string) => boolean
     'project.del': (id: ProjectId) => boolean
+    'project.delGithub': (id: ProjectId) => boolean
+    'project.bindGithub': (id: ProjectId, url: string) => boolean
+    'project.checkUpdate': (id: ProjectId, via: 'github' | 'mirrorc') => boolean
     'project.load': (id: ProjectId) => ProjectInfo | null
     'project.loadInterface': (id: ProjectId) => Interface | null
 
@@ -58,11 +62,6 @@ export type MainService = {
     'github.hasToken': () => boolean
     'github.tryUpdateToken': (token: string) => boolean
     'github.cleanToken': () => void
-    'github.queryRepo': () => GithubRepoInfo[]
-    'github.newRepo': (url: string) => boolean
-    'github.delRepo': (id: GithubRepoId) => boolean
-    'github.checkRepoUpdate': (id: GithubRepoId) => boolean
-    'github.exportRepo': (id: GithubRepoId, tag: string) => boolean
 
     'mirrorc.hasToken': () => boolean
     'mirrorc.tryUpdateToken': (token: string) => boolean
@@ -79,6 +78,8 @@ export type RendererService = {
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
 
     'utils.showToast': (category: 'info' | 'warning' | 'error' | 'success', message: string) => void
+
+    'project.updateFound': (version: string, notes: string) => boolean
 }
 
 type Get<O, K extends string> = K extends keyof O ? O[K] : never

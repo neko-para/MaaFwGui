@@ -1,6 +1,5 @@
 import type {
     AdbDevice,
-    GithubRepoInfo,
     GlobalConfig,
     MirrorcAppInfo,
     ProfileInfo,
@@ -15,9 +14,6 @@ export type AppConfig = {
     profiles?: ProfileInfo[]
     projects?: ProjectInfo[]
     devices?: AdbDevice[]
-    github?: {
-        repos?: GithubRepoInfo[]
-    }
     mirrorc?: {
         apps?: MirrorcAppInfo[]
     }

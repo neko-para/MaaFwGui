@@ -8,7 +8,8 @@ export async function extractZip(file: string, dest: string) {
             path: dest
         })
         return true
-    } catch {
+    } catch (err) {
+        console.log(err)
         return false
     }
 }
@@ -20,7 +21,8 @@ export async function extractTar(file: string, dest: string) {
             cwd: dest
         })
         return true
-    } catch {
+    } catch (err) {
+        console.log(err)
         return false
     }
 }

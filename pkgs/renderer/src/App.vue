@@ -5,10 +5,10 @@ import { onMounted, ref } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 
 import MToastTracker from '@/components/MToastTracker.vue'
+import MUpdateFoundTracker from '@/components/MUpdateFoundTracker.vue'
 
 import { theme, themeOverride } from './plugins/theme'
 import { syncDevices } from './states/device'
-import { syncRepos } from './states/github'
 import { syncApps } from './states/mirrorc'
 import { syncProfile } from './states/profile'
 import { syncProjects } from './states/project'
@@ -23,7 +23,6 @@ onMounted(async () => {
     syncProfile()
     syncProjects()
     syncDevices()
-    syncRepos()
     syncApps()
 })
 </script>
@@ -32,8 +31,9 @@ onMounted(async () => {
     <n-config-provider abstract :theme="theme" :theme-overrides="themeOverride">
         <n-message-provider>
             <m-toast-tracker></m-toast-tracker>
+            <m-update-found-tracker></m-update-found-tracker>
 
-            <div class="flex flex-col h-full">
+            <div class="flex flex-col h-full relative">
                 <div
                     class="w-screen h-7 pointer-events-none drag-window shrink-0 flex items-center justify-end pr-2"
                 >
