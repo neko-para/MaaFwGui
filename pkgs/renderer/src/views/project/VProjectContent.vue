@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ProjectUpdateChannel } from '@mfg/types'
-import { NSelect } from 'naive-ui'
+import { NInput, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { ref } from 'vue'
 
@@ -30,6 +30,13 @@ const channelOptions = [
     { value: 'alpha', label: 'alpha' }
 ] satisfies SelectMixedOption[]
 
+async function updateName(name: string) {
+    await window.main.project.update(projectId.value!, {
+        name
+    })
+    await syncProjects()
+}
+
 async function updateChannel(channel: ProjectUpdateChannel) {
     await window.main.project.update(projectId.value!, {
         channel
@@ -48,7 +55,12 @@ async function updateChannel(channel: ProjectUpdateChannel) {
         </div>
         <div v-if="activeProjectInfo && interfaceData" class="form-grid items-center gap-2">
             <span> 名称 </span>
-            <span> {{ activeProjectInfo.name }} </span>
+            <n-input
+                placeholder="输入新名称"
+                :value="activeProjectInfo.name"
+                @update:value="updateName"
+                size="small"
+            ></n-input>
             <span> 版本 </span>
             <span> {{ activeProjectInfo.version ?? '无版本信息' }} </span>
             <span> 更新通道 </span>

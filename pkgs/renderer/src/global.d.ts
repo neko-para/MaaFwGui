@@ -4,6 +4,7 @@ declare global {
             invoke: (key: string, ...args: unknown[]) => Promise<unknown>
             on: (key: string, func: (id: number, ...args: unknown[]) => void) => () => void
             resp: (id: number, result: unknown) => void
+            resolveFile: (file: File) => string
         }
 
         main: import('@mfg/types').RendererIpc['main']

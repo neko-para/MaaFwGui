@@ -46,7 +46,7 @@ export type MainService = {
 
     'project.query': () => ProjectInfo[]
     'project.newExternal': () => boolean
-    'project.newArchive': () => boolean
+    'project.newArchive': (files?: string[]) => boolean
     'project.newGithub': (url: string) => boolean
     'project.newMirrorc': (rid: string) => boolean
     'project.update': (id: ProjectId, cfg: Partial<ProjectInfo>) => void

@@ -14,6 +14,7 @@ import {
     requestNewArchiveProject,
     requestNewExternalProject,
     requestNewGithubProject,
+    syncProjects,
     useProject
 } from '@/states/project'
 
@@ -47,6 +48,39 @@ async function requestImport(type: 'archive' | 'github' | 'mirrorc') {
     }
     loading.value = false
 }
+
+function checkMime(mime: string) {
+    return ['application/zip', 'application/x-gzip', 'application/x-gtar'].includes(mime)
+}
+
+function checkFile(file: File) {
+    return file.name.endsWith('.zip') || file.name.endsWith('.tar.gz') || file.name.endsWith('.tar')
+}
+
+function dragOver(e: DragEvent) {
+    for (const item of e.dataTransfer?.items ?? []) {
+        if (item.kind === 'file' && checkMime(item.type)) {
+            e.preventDefault()
+            return
+        }
+    }
+}
+
+async function drop(e: DragEvent) {
+    const files: File[] = []
+    for (const file of e.dataTransfer?.files ?? []) {
+        if (checkFile(file)) {
+            files.push(file)
+        }
+    }
+    if (files.length > 0) {
+        e.preventDefault()
+        loading.value = true
+        await window.main.project.newArchive(files.map(file => window.ipc.resolveFile(file)))
+        await syncProjects()
+        loading.value = false
+    }
+}
 </script>
 
 <template>
@@ -74,7 +108,10 @@ async function requestImport(type: 'archive' | 'github' | 'mirrorc') {
 
         <template #itemEntry="{ item: project }">
             <span class="text-xl">
-                {{ project.name + (project.id === projectId ? ' *' : '') }}
+                {{
+                    (project.name === '' ? '<未命名项目>' : project.name) +
+                    (project.id === projectId ? ' *' : '')
+                }}
             </span>
         </template>
 
@@ -82,6 +119,16 @@ async function requestImport(type: 'archive' | 'github' | 'mirrorc') {
             <m-button :action="async () => requestDelProject(project.id)" use-loading>
                 删除
             </m-button>
+        </template>
+
+        <template #bottom>
+            <div
+                class="flex-1 min-h-8 max-h-80 mt-auto border-dashed border-gray-500 border flex flex-col items-center justify-center"
+                @dragover="dragOver"
+                @drop="drop"
+            >
+                <span class="text-md"> 拖拽压缩包以添加项目 </span>
+            </div>
         </template>
     </l-generic-side>
 </template>

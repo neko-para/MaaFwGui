@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const ipc = {
     invoke: (key: string, ...args: unknown[]) => {
@@ -15,6 +15,9 @@ const ipc = {
     },
     resp: (id: number, result: unknown) => {
         ipcRenderer.send('main.resp', id, result)
+    },
+    resolveFile: (file: File) => {
+        return webUtils.getPathForFile(file)
     }
 }
 

@@ -31,7 +31,7 @@ const projectOptions = computed(() => {
     return projectInfo.value.map(proj => {
         return {
             value: proj.id,
-            label: proj.name
+            label: proj.name === '' ? '<未命名项目>' : proj.name
         } satisfies SelectMixedOption
     })
 })

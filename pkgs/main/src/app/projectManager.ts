@@ -79,20 +79,26 @@ export class MfgProjectManager {
             await mfgApp.saveConfig()
             return true
         }
-        globalThis.main.project.newArchive = async () => {
-            const result = await dialog.showOpenDialog(window, {
-                title: '打开资源包',
-                filters: [
-                    {
-                        name: '资源包',
-                        extensions: ['zip', 'tar', 'gz']
-                    }
-                ]
-            })
-            if (result.filePaths.length === 0) {
-                return false
+        globalThis.main.project.newArchive = async files => {
+            if (!files || files.length === 0) {
+                const result = await dialog.showOpenDialog(window, {
+                    title: '打开资源包',
+                    filters: [
+                        {
+                            name: '资源包',
+                            extensions: ['zip', 'tar', 'gz']
+                        }
+                    ]
+                })
+                if (result.filePaths.length === 0) {
+                    return false
+                }
+                files = result.filePaths
             }
-            return await this.importArchive(result.filePaths[0])
+            return (await Promise.all(files.map(file => this.importArchive(file)))).reduce(
+                (a, b) => a && b,
+                true
+            )
         }
         globalThis.main.project.newGithub = async url => {
             const repo = extractGithubUrl(url)

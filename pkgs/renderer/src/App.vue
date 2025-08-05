@@ -37,7 +37,7 @@ onMounted(async () => {
                 >
                     <span class="mr-32"> {{ route.path }} </span>
                 </div>
-                <div class="flex min-h-0">
+                <div class="flex min-h-0 flex-1">
                     <div class="h-full w-80 flex flex-col">
                         <router-view name="side"></router-view>
                     </div>

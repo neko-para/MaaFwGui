@@ -24,7 +24,7 @@ function itemKey(item: Item) {
 </script>
 
 <template>
-    <div class="m-4 flex flex-col gap-2">
+    <div class="m-4 flex flex-col gap-2 flex-1">
         <div class="flex gap-2">
             <span class="text-xl"> {{ title }} </span>
             <div class="flex-1"></div>
@@ -38,5 +38,6 @@ function itemKey(item: Item) {
             <div class="flex-1"></div>
             <slot name="itemActions" :item="item"></slot>
         </div>
+        <slot name="bottom"></slot>
     </div>
 </template>
