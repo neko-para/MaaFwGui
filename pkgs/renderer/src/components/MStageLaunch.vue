@@ -1,33 +1,46 @@
 <script setup lang="ts">
-import type { LaunchStatus, StageInfo } from '@mfg/types'
-import { NCard } from 'naive-ui'
+import type { LaunchId, LaunchStatus, StageInfo } from '@mfg/types'
+import { NCard, NScrollbar } from 'naive-ui'
 
 import MStatus from '@/components/MStatus.vue'
+import { agentOutput } from '@/states/launch'
 
 defineProps<{
+    launch: LaunchId
     stage: StageInfo
-    launch: LaunchStatus
+    status: LaunchStatus
 }>()
 </script>
 
 <template>
-    <n-card :title="stage.name" size="small">
-        <template #header-extra>
-            <m-status :status="launch.stages[stage.id]"></m-status>
-        </template>
+    <div class="flex gap-2">
+        <n-card :title="stage.name" class="flex-1" size="small">
+            <template #header-extra>
+                <m-status :status="status.stages[stage.id]"></m-status>
+            </template>
 
-        <div class="flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-                <span> 连接设备 </span>
-                <div class="flex-1"></div>
-                <m-status :status="launch.tasks[stage.id]"></m-status>
-            </div>
+            <div class="flex gap-2">
+                <div class="flex flex-col gap-2 flex-1">
+                    <div class="flex items-center gap-2">
+                        <span> 连接设备 </span>
+                        <div class="flex-1"></div>
+                        <m-status :status="status.tasks[stage.id]"></m-status>
+                    </div>
 
-            <div v-for="task in stage.tasks" :key="task.id" class="flex items-center gap-2">
-                <span> {{ task.task }} </span>
-                <div class="flex-1"></div>
-                <m-status :status="launch.tasks[task.id]"></m-status>
+                    <div v-for="task in stage.tasks" :key="task.id" class="flex items-center gap-2">
+                        <span> {{ task.task }} </span>
+                        <div class="flex-1"></div>
+                        <m-status :status="status.tasks[task.id]"></m-status>
+                    </div>
+                </div>
             </div>
-        </div>
-    </n-card>
+        </n-card>
+        <n-scrollbar class="max-w-1/2 max-h-32 p-2 flex flex-col">
+            <div class="flex flex-col gap-0.5">
+                <span v-for="(output, idx) of agentOutput[launch]?.[stage.id] ?? []" :key="idx">
+                    {{ output }}
+                </span>
+            </div>
+        </n-scrollbar>
+    </div>
 </template>

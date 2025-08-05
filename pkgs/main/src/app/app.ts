@@ -6,6 +6,7 @@ import fs from 'fs/promises'
 import path from 'path'
 
 import pkg from '../../../../package.json'
+import { window } from '../window'
 import { MfgDeviceManager } from './deviceManager'
 import { MfgGithubManager } from './githubManager'
 import { MfgLaunchManager } from './launchManager'
@@ -86,6 +87,9 @@ class MfgApp {
                 await shell.openPath(p)
             }
             return true
+        }
+        globalThis.main.misc.openDevTools = () => {
+            window.webContents.openDevTools()
         }
     }
 

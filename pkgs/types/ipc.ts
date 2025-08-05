@@ -22,6 +22,7 @@ export type MainService = {
     'misc.MaaFwVersion': () => string
     'misc.revealData': () => void
     'misc.revealPath': (path: string) => boolean
+    'misc.openDevTools': () => void
 
     'profile.query': () => ProfileInfo[]
     'profile.new': () => void
@@ -74,6 +75,7 @@ export type MainService = {
 export type RendererService = {
     'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
+    'launch.addAgentOutput': (lid: LaunchId, sid: StageId, output: string) => void
 
     'utils.showToast': (category: 'info' | 'warning' | 'error' | 'success', message: string) => void
 

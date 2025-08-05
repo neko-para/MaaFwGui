@@ -306,9 +306,11 @@ export class MfgLaunchManager {
 
                 cp.stdout.on('data', (chunk: Buffer) => {
                     console.log(chunk.toString())
+                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
                 })
                 cp.stderr.on('data', (chunk: Buffer) => {
                     console.log(chunk.toString())
+                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
                 })
 
                 launch.instance.agent = cp

@@ -1,12 +1,19 @@
-import type { LaunchId, LaunchStatus, ProfileId } from '@mfg/types'
+import type { LaunchId, LaunchStatus, ProfileId, StageId } from '@mfg/types'
 import { computed, ref } from 'vue'
 
 export const launchIndex = ref<Record<ProfileId, LaunchId>>({})
 export const launchStatus = ref<Record<LaunchId, LaunchStatus>>({})
+export const agentOutput = ref<Record<LaunchId, Record<StageId, string[]>>>({})
 
 export async function syncLaunch() {
     launchIndex.value = await window.main.launch.syncIndex()
     launchStatus.value = await window.main.launch.syncStatus()
+
+    for (const lid of Object.keys(agentOutput.value) as LaunchId[]) {
+        if (!(lid in launchStatus.value)) {
+            delete agentOutput.value[lid]
+        }
+    }
 }
 
 export function useLaunch(get: () => ProfileId | undefined) {
@@ -36,5 +43,12 @@ export function initLaunchHooks() {
         } else {
             delete launchStatus.value[lid]
         }
+    })
+
+    window.renderer.launch.addAgentOutput(async (lid, sid, output) => {
+        agentOutput.value[lid] = agentOutput.value[lid] ?? {}
+        agentOutput.value[lid][sid] = (agentOutput.value[lid][sid] ?? []).concat(
+            output.replaceAll(/\x1b\[\d+m/g, '')
+        )
     })
 }

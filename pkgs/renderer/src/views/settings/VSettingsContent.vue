@@ -61,6 +61,10 @@ async function revealData() {
     await window.main.misc.revealData()
 }
 
+async function openDevTools() {
+    await window.main.misc.openDevTools()
+}
+
 onMounted(async () => {
     fwVer.value = await window.main.misc.MaaFwVersion()
     guiVer.value = await window.main.misc.MaaFwGuiVersion()
@@ -143,6 +147,7 @@ onMounted(async () => {
 
         <div class="flex items-center gap-2">
             <m-button :action="revealData" use-loading> 查看数据 </m-button>
+            <m-button :action="openDevTools" use-loading> 打开DevTools </m-button>
         </div>
     </div>
 </template>

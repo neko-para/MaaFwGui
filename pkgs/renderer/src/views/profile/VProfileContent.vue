@@ -108,8 +108,9 @@ async function moveStage(from: string, to: string, before: boolean) {
                 <div class="flex flex-col">
                     <div v-for="stage in activeProfileInfo.stages" :key="stage.id">
                         <m-stage-launch
+                            :launch="launchId!"
                             :stage="stage"
-                            :launch="activeLaunchStatus"
+                            :status="activeLaunchStatus"
                         ></m-stage-launch>
                     </div>
                 </div>
