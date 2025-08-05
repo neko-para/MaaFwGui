@@ -1,10 +1,15 @@
 import { generateId } from './uuid'
 
-export function makeProgress() {
+export type ProgressInstance = {
+    update: (stage: string, progress?: number) => void
+    end: () => void
+}
+
+export function makeProgress(): ProgressInstance {
     const id = generateId()
 
     return {
-        update: (stage: string, progress?: number) => {
+        update: (stage, progress) => {
             globalThis.renderer.utils.showProgress(id, stage, progress)
         },
         end: () => {

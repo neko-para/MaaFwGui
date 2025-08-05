@@ -6,7 +6,7 @@ import fs from 'fs/promises'
 import * as path from 'path'
 
 import { extractAuto } from '../utils/compress'
-import { makeProgress } from '../utils/progress'
+import { ProgressInstance, makeProgress } from '../utils/progress'
 import { generateId } from '../utils/uuid'
 import { window } from '../window'
 import { mfgApp } from './app'
@@ -104,10 +104,19 @@ export class MfgProjectManager {
                 }
                 files = result.filePaths
             }
-            return (await Promise.all(files.map(file => this.importArchive(file)))).reduce(
-                (a, b) => a && b,
-                true
-            )
+
+            const prog = makeProgress()
+
+            for (const file of files) {
+                prog.update('解压中')
+
+                if (!(await this.importArchive(file, undefined, prog))) {
+                    prog.end()
+                    return false
+                }
+            }
+            prog.end()
+            return true
         }
         globalThis.main.project.newGithub = async url => {
             const repo = extractGithubUrl(url)
@@ -148,7 +157,7 @@ export class MfgProjectManager {
             await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
             const file = path.join(mfgApp.root, 'temp', generateId() + result.extension)
             await fs.writeFile(file, Buffer.from(data))
-            const res = await this.importArchive(file, result.version)
+            const res = await this.importArchive(file, result.version, prog)
             await fs.unlink(file)
 
             prog.end()
@@ -195,7 +204,7 @@ export class MfgProjectManager {
             await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
             const file = path.join(mfgApp.root, 'temp', generateId() + extension)
             await fs.writeFile(file, Buffer.from(data))
-            const res = await this.importArchive(file, result.version)
+            const res = await this.importArchive(file, result.version, prog)
             await fs.unlink(file)
 
             prog.end()
@@ -396,7 +405,7 @@ export class MfgProjectManager {
                 }
 
                 prog.update('解压中')
-                if (!(await this.replaceArchive(project.id, data, result.extension))) {
+                if (!(await this.replaceArchive(project.id, data, result.extension, prog))) {
                     prog.end()
                     return false
                 }
@@ -469,12 +478,12 @@ export class MfgProjectManager {
 
                 prog.update('解压中')
                 if (result.incremental) {
-                    if (!(await this.applyIncreArchive(project.id, data, extension))) {
+                    if (!(await this.applyIncreArchive(project.id, data, extension, prog))) {
                         prog.end()
                         return false
                     }
                 } else {
-                    if (!(await this.replaceArchive(project.id, data, extension))) {
+                    if (!(await this.replaceArchive(project.id, data, extension, prog))) {
                         prog.end()
                         return false
                     }
@@ -499,12 +508,12 @@ export class MfgProjectManager {
         }
     }
 
-    async importArchive(file: string, ver?: string) {
+    async importArchive(file: string, ver?: string, prog?: ProgressInstance) {
         const pid = generateId<ProjectId>()
 
         const tempRoot = path.join(mfgApp.root, 'temp', pid)
         await fs.mkdir(tempRoot, { recursive: true })
-        if (!(await extractAuto(file, tempRoot))) {
+        if (!(await extractAuto(file, tempRoot, prog))) {
             globalThis.renderer.utils.showToast('error', '解压失败')
             return false
         }
@@ -551,13 +560,13 @@ export class MfgProjectManager {
         return true
     }
 
-    async replaceArchive(pid: ProjectId, data: ArrayBuffer, ext: string) {
+    async replaceArchive(pid: ProjectId, data: ArrayBuffer, ext: string, prog?: ProgressInstance) {
         await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
         const file = path.join(mfgApp.root, 'temp', generateId() + ext)
         await fs.writeFile(file, Buffer.from(data))
         const tempRoot = path.join(mfgApp.root, 'temp', pid)
         await fs.mkdir(tempRoot, { recursive: true })
-        if (!(await extractAuto(file, tempRoot))) {
+        if (!(await extractAuto(file, tempRoot, prog))) {
             globalThis.renderer.utils.showToast('error', '解压失败')
             await fs.unlink(file)
             return false
@@ -570,13 +579,18 @@ export class MfgProjectManager {
         return true
     }
 
-    async applyIncreArchive(pid: ProjectId, data: ArrayBuffer, ext: string) {
+    async applyIncreArchive(
+        pid: ProjectId,
+        data: ArrayBuffer,
+        ext: string,
+        prog?: ProgressInstance
+    ) {
         await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
         const file = path.join(mfgApp.root, 'temp', generateId() + ext)
         await fs.writeFile(file, Buffer.from(data))
         const tempRoot = path.join(mfgApp.root, 'temp', pid)
         await fs.mkdir(tempRoot, { recursive: true })
-        if (!(await extractAuto(file, tempRoot))) {
+        if (!(await extractAuto(file, tempRoot, prog))) {
             globalThis.renderer.utils.showToast('error', '解压失败')
             await fs.unlink(file)
             return false
