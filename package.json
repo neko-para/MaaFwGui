@@ -19,6 +19,7 @@
         "@types/unzipper": "^0.10.11",
         "@types/uuid": "^10.0.0",
         "@vitejs/plugin-vue": "^6.0.0",
+        "@vitejs/plugin-vue-jsx": "^5.0.1",
         "@vue/tsconfig": "^0.7.0",
         "axios": "^1.11.0",
         "electron": "^37.2.3",

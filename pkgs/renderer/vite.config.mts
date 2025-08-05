@@ -1,5 +1,6 @@
 import tailwind from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import path from 'path'
 import { defineConfig } from 'vite'
 
@@ -28,5 +29,5 @@ export default defineConfig({
             '@': path.join(import.meta.dirname, 'src')
         }
     },
-    plugins: [vue(), tailwind()]
+    plugins: [vue(), vueJsx(), tailwind()]
 })

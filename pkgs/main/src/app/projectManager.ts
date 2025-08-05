@@ -6,6 +6,7 @@ import fs from 'fs/promises'
 import * as path from 'path'
 
 import { extractAuto } from '../utils/compress'
+import { makeProgress } from '../utils/progress'
 import { generateId } from '../utils/uuid'
 import { window } from '../window'
 import { mfgApp } from './app'
@@ -115,54 +116,89 @@ export class MfgProjectManager {
                 return false
             }
 
+            const prog = makeProgress()
+
+            prog.update('获取索引中')
             const result = await mfgApp.githubManager.checkUpdate(repo.owner, repo.repo, 'stable')
             if (!result) {
+                prog.end()
                 return false
             }
 
+            prog.update('下载中')
             let data: ArrayBuffer
             try {
-                data = (await axios(result.download())).data
+                data = (
+                    await axios({
+                        ...result.download(),
+                        onDownloadProgress: event => {
+                            if (event.lengthComputable) {
+                                prog.update('下载中', (event.loaded / (event.total ?? 1)) * 100)
+                            }
+                        }
+                    })
+                ).data
             } catch (err) {
+                prog.end()
                 globalThis.renderer.utils.showToast('error', `下载失败: ${err}`)
                 return false
             }
 
+            prog.update('解压中')
             await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
             const file = path.join(mfgApp.root, 'temp', generateId() + result.extension)
             await fs.writeFile(file, Buffer.from(data))
             const res = await this.importArchive(file, result.version)
             await fs.unlink(file)
+
+            prog.end()
             return res
         }
         globalThis.main.project.newMirrorc = async rid => {
+            const prog = makeProgress()
+
+            prog.update('获取索引中')
             const result = await mfgApp.mirrorcManager.checkUpdate(rid, undefined, 'stable')
             if (!result) {
+                prog.end()
                 return false
             }
 
             const cfg = result.download()
             if (!cfg) {
+                prog.end()
                 globalThis.renderer.utils.showToast('warning', '无CDK无法进行下载')
                 return false
             }
 
+            prog.update('下载中')
             let data: ArrayBuffer
             let extension: string | null = null
             try {
-                const resp = await axios(cfg)
+                const resp = await axios({
+                    ...cfg,
+                    onDownloadProgress: event => {
+                        if (event.lengthComputable) {
+                            prog.update('下载中', (event.loaded / (event.total ?? 1)) * 100)
+                        }
+                    }
+                })
                 data = resp.data
                 extension = guessExtension(resp)
             } catch (err) {
+                prog.end()
                 globalThis.renderer.utils.showToast('error', `下载失败: ${err}`)
                 return false
             }
 
+            prog.update('解压中')
             await fs.mkdir(path.join(mfgApp.root, 'temp'), { recursive: true })
             const file = path.join(mfgApp.root, 'temp', generateId() + extension)
             await fs.writeFile(file, Buffer.from(data))
             const res = await this.importArchive(file, result.version)
             await fs.unlink(file)
+
+            prog.end()
             return res
         }
         globalThis.main.project.update = async (id, cfg) => {
@@ -304,22 +340,28 @@ export class MfgProjectManager {
                 return false
             }
 
+            const prog = makeProgress()
+
             if (via === 'github') {
                 if (!project.github) {
+                    prog.end()
                     globalThis.renderer.utils.showToast('error', '未关联到Github')
                     return false
                 }
 
+                prog.update('获取索引中')
                 const result = await mfgApp.githubManager.checkUpdate(
                     project.github.owner,
                     project.github.repo,
                     project.channel ?? 'stable'
                 )
                 if (!result) {
+                    prog.end()
                     return false
                 }
 
                 if (result.version === project.version) {
+                    prog.end()
                     globalThis.renderer.utils.showToast('success', '已是最新版本')
                     return true
                 }
@@ -330,41 +372,60 @@ export class MfgProjectManager {
                         result.notes ?? '无更新日志'
                     ))
                 ) {
+                    prog.end()
                     return true
                 }
 
+                prog.update('下载中')
                 let data: ArrayBuffer
                 try {
-                    data = (await axios(result.download())).data
+                    data = (
+                        await axios({
+                            ...result.download(),
+                            onDownloadProgress: event => {
+                                if (event.lengthComputable) {
+                                    prog.update('下载中', (event.loaded / (event.total ?? 1)) * 100)
+                                }
+                            }
+                        })
+                    ).data
                 } catch (err) {
+                    prog.end()
                     globalThis.renderer.utils.showToast('error', `下载失败: ${err}`)
                     return false
                 }
 
+                prog.update('解压中')
                 if (!(await this.replaceArchive(project.id, data, result.extension))) {
+                    prog.end()
                     return false
                 }
 
                 project.version = result.version
                 await mfgApp.saveConfig()
 
+                prog.end()
                 return true
             } else if (via === 'mirrorc') {
                 if (!project.mirrorc) {
-                    globalThis.renderer.utils.showToast('error', '未关联到Github')
+                    prog.end()
+                    globalThis.renderer.utils.showToast('error', '未关联到Mirrorc')
                     return false
                 }
 
+                prog.update('获取索引中')
                 const result = await mfgApp.mirrorcManager.checkUpdate(
                     project.mirrorc.rid,
                     project.version,
                     project.channel ?? 'stable'
                 )
                 if (!result) {
+                    prog.end()
                     return false
                 }
 
                 if (result.version === project.version) {
+                    prog.end()
                     globalThis.renderer.utils.showToast('success', '已是最新版本')
                     return true
                 }
@@ -375,32 +436,46 @@ export class MfgProjectManager {
                         result.notes ?? '无更新日志'
                     ))
                 ) {
+                    prog.end()
                     return true
                 }
 
                 const cfg = result.download()
                 if (!cfg) {
+                    prog.end()
                     globalThis.renderer.utils.showToast('warning', '无CDK无法进行下载')
                     return false
                 }
 
+                prog.update('下载中')
                 let data: ArrayBuffer
                 let extension: string | null = null
                 try {
-                    const resp = await axios(cfg)
+                    const resp = await axios({
+                        ...cfg,
+                        onDownloadProgress: event => {
+                            if (event.lengthComputable) {
+                                prog.update('下载中', (event.loaded / (event.total ?? 1)) * 100)
+                            }
+                        }
+                    })
                     data = resp.data
                     extension = guessExtension(resp)
                 } catch (err) {
+                    prog.end()
                     globalThis.renderer.utils.showToast('error', `下载失败: ${err}`)
                     return false
                 }
 
+                prog.update('解压中')
                 if (result.incremental) {
                     if (!(await this.applyIncreArchive(project.id, data, extension))) {
+                        prog.end()
                         return false
                     }
                 } else {
                     if (!(await this.replaceArchive(project.id, data, extension))) {
+                        prog.end()
                         return false
                     }
                 }
@@ -408,8 +483,10 @@ export class MfgProjectManager {
                 project.version = result.version
                 await mfgApp.saveConfig()
 
+                prog.end()
                 return true
             } else {
+                prog.end()
                 return false
             }
         }

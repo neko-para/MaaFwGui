@@ -78,6 +78,8 @@ export type RendererService = {
     'launch.addAgentOutput': (lid: LaunchId, sid: StageId, output: string) => void
 
     'utils.showToast': (category: 'info' | 'warning' | 'error' | 'success', message: string) => void
+    'utils.showProgress': (id: string, stage: string, progress?: number) => void
+    'utils.endProgress': (id: string) => void
 
     'project.updateFound': (version: string, notes: string) => boolean
 }
