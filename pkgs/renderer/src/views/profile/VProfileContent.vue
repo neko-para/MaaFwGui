@@ -93,7 +93,7 @@ async function moveStage(from: string, to: string, before: boolean) {
             </div>
             <m-draggable
                 v-if="!activeLaunchStatus"
-                :component="MStage"
+                :comp="MStage"
                 :items="activeProfileInfo.stages"
                 key-prop="id"
                 half-gap="4px"

@@ -3,7 +3,7 @@ import { NScrollbar } from 'naive-ui'
 import { type Component, computed, ref } from 'vue'
 
 const props = defineProps<{
-    component: Component
+    comp: Component
     items: Item[]
     keyProp: keyof Item
     halfGap: string
@@ -172,6 +172,7 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
                 class="relative"
             >
                 <component
+                    :is="comp"
                     :id="keyOf(item)"
                     :item="item"
                     :index="index"

@@ -31,7 +31,7 @@ async function moveTask(from: string, to: string, before: boolean) {
         </div>
 
         <m-draggable
-            :component="MTask"
+            :comp="MTask"
             :items="activeStageInfo?.tasks ?? []"
             key-prop="id"
             half-gap="4px"

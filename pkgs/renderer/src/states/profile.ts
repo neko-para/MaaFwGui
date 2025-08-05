@@ -6,7 +6,7 @@ export const profileInfo = ref<ProfileInfo[]>([])
 
 export async function requestNewProfile() {
     await window.main.profile.new()
-    profileInfo.value = await window.main.profile.query()
+    await syncProfile()
 }
 
 export async function requestDelProfile(pid: ProfileId) {
