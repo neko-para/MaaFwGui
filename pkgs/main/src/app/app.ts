@@ -74,6 +74,11 @@ class MfgApp {
         globalThis.main.misc.MaaFwVersion = () => maa.Global.version
         globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
 
+        globalThis.main.misc.toggleDebugMode = async () => {
+            this.config.config = this.config.config ?? {}
+            this.config.config.debugMode = !this.config.config.debugMode
+            await this.saveConfig()
+        }
         globalThis.main.misc.revealData = async () => {
             await shell.openPath(this.root)
         }

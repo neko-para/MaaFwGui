@@ -20,6 +20,7 @@ export type MainService = {
 
     'misc.MaaFwGuiVersion': () => string
     'misc.MaaFwVersion': () => string
+    'misc.toggleDebugMode': () => void
     'misc.revealData': () => void
     'misc.revealPath': (path: string) => boolean
     'misc.openDevTools': () => void

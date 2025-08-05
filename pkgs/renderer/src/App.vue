@@ -9,6 +9,7 @@ import MToastTracker from '@/components/MToastTracker.vue'
 import MUpdateFoundTracker from '@/components/MUpdateFoundTracker.vue'
 
 import { theme, themeOverride } from './plugins/theme'
+import { config, syncConfig } from './states/config'
 import { syncDevices } from './states/device'
 import { syncProfile } from './states/profile'
 import { syncProjects } from './states/project'
@@ -20,6 +21,7 @@ const route = useRoute()
 onMounted(async () => {
     systemInfo.value = await window.main.utils.querySystemInfo()
 
+    syncConfig()
     syncProfile()
     syncProjects()
     syncDevices()
@@ -38,7 +40,7 @@ onMounted(async () => {
                     <div
                         class="w-screen h-7 pointer-events-none drag-window shrink-0 flex items-center justify-end pr-2"
                     >
-                        <span class="mr-32"> {{ route.path }} </span>
+                        <span class="mr-32" v-if="config.debugMode"> {{ route.path }} </span>
                     </div>
                     <div class="flex min-h-0 flex-1">
                         <div class="h-full w-80 flex flex-col">

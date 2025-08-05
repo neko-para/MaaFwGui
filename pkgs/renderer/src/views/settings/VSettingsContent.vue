@@ -4,13 +4,12 @@ import { NInput } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
+import { config, syncConfig } from '@/states/config'
 
 const fwVer = ref('')
 const guiVer = ref('')
 
 const fakeToken = '********'
-
-const config = ref<GlobalConfig>({})
 
 const githubToken = ref('')
 const isValidGithubToken = computed(() => {
@@ -20,7 +19,7 @@ const isValidGithubToken = computed(() => {
 async function cleanGithubToken() {
     await window.main.github.cleanToken()
     githubToken.value = ''
-    config.value = await window.main.utils.queryConfig()
+    await syncConfig()
 }
 
 async function validateGithubToken() {
@@ -31,7 +30,7 @@ async function validateGithubToken() {
 
     if (await window.main.github.tryUpdateToken(githubToken.value)) {
         githubToken.value = fakeToken
-        config.value = await window.main.utils.queryConfig()
+        await syncConfig()
     } else {
         githubToken.value = ''
     }
@@ -57,6 +56,11 @@ async function validateMirrorcToken() {
     }
 }
 
+async function toggleDebugMode() {
+    await window.main.misc.toggleDebugMode()
+    await syncConfig()
+}
+
 async function revealData() {
     await window.main.misc.revealData()
 }
@@ -68,7 +72,7 @@ async function openDevTools() {
 onMounted(async () => {
     fwVer.value = await window.main.misc.MaaFwVersion()
     guiVer.value = await window.main.misc.MaaFwGuiVersion()
-    config.value = await window.main.utils.queryConfig()
+    await syncConfig()
 
     if (await window.main.github.hasToken()) {
         githubToken.value = fakeToken
@@ -146,8 +150,13 @@ onMounted(async () => {
         </div>
 
         <div class="flex items-center gap-2">
-            <m-button :action="revealData" use-loading> 查看数据 </m-button>
-            <m-button :action="openDevTools" use-loading> 打开DevTools </m-button>
+            <m-button :action="toggleDebugMode" use-loading>
+                {{ config.debugMode ? '禁用调试模式' : '启用调试模式' }}
+            </m-button>
+            <template v-if="config.debugMode">
+                <m-button :action="revealData" use-loading> 查看数据 </m-button>
+                <m-button :action="openDevTools" use-loading> 打开DevTools </m-button>
+            </template>
         </div>
     </div>
 </template>

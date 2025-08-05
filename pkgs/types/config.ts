@@ -1,4 +1,5 @@
 export type GlobalConfig = {
+    debugMode?: boolean
     githubLoginUser?: string
 }
 
