@@ -2,7 +2,13 @@
 
 ## install deps
 
+```powershell
+$Env:ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/"
+npm install
+```
+
 ```shell
+export ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/"
 npm install
 ```
 
