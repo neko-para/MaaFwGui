@@ -21,7 +21,7 @@ async function moveTask(from: string, to: string, before: boolean) {
 </script>
 
 <template>
-    <div v-if="profileId && stageId" class="m-4 flex flex-col gap-2">
+    <div v-if="profileId && stageId" class="m-4 flex flex-col gap-2 min-h-0">
         <div class="flex gap-2">
             <span class="text-xl"> 任务列表 </span>
             <div class="flex-1"></div>
