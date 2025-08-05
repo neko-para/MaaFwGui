@@ -151,6 +151,21 @@ export class MfgProjectManager {
             await fs.unlink(file)
             return res
         }
+        globalThis.main.project.update = async (id, cfg) => {
+            if (!mfgApp.config.projects) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return
+            }
+
+            const project = mfgApp.config.projects.find(x => x.id === id)
+            if (!project) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return
+            }
+
+            Object.assign(project, cfg)
+            await mfgApp.saveConfig()
+        }
         globalThis.main.project.del = async id => {
             if (!mfgApp.config.projects) {
                 globalThis.renderer.utils.showToast('error', '未找到指定项目')

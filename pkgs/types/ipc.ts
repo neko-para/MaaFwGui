@@ -49,6 +49,7 @@ export type MainService = {
     'project.newArchive': () => boolean
     'project.newGithub': (url: string) => boolean
     'project.newMirrorc': (rid: string) => boolean
+    'project.update': (id: ProjectId, cfg: Partial<ProjectInfo>) => void
     'project.del': (id: ProjectId) => boolean
     'project.delGithub': (id: ProjectId) => boolean
     'project.bindGithub': (id: ProjectId, url: string) => boolean

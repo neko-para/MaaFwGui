@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { ProjectUpdateChannel } from '@mfg/types'
+import { NSelect } from 'naive-ui'
+import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { ref } from 'vue'
 
 import MAddGithub from '@/components/MAddGithub.vue'
@@ -9,6 +12,7 @@ import {
     requestCheckUpdate,
     requestDelGithubProject,
     requestDelMirrorcProject,
+    syncProjects,
     useInterface,
     useProject
 } from '@/states/project'
@@ -19,6 +23,19 @@ const addMirrorcEl = ref<InstanceType<typeof MAddMirrorc> | null>(null)
 const { activeProjectInfo, projectId } = useProject()
 
 const { interfaceData } = useInterface(() => projectId.value)
+
+const channelOptions = [
+    { value: 'stable', label: 'stable' },
+    { value: 'beta', label: 'beta' },
+    { value: 'alpha', label: 'alpha' }
+] satisfies SelectMixedOption[]
+
+async function updateChannel(channel: ProjectUpdateChannel) {
+    await window.main.project.update(projectId.value!, {
+        channel
+    })
+    await syncProjects()
+}
 </script>
 
 <template>
@@ -35,7 +52,13 @@ const { interfaceData } = useInterface(() => projectId.value)
             <span> 版本 </span>
             <span> {{ activeProjectInfo.version ?? '无版本信息' }} </span>
             <span> 更新通道 </span>
-            <span> {{ activeProjectInfo.channel ?? 'stable' }} </span>
+            <n-select
+                placeholder="stable"
+                :options="channelOptions"
+                :value="activeProjectInfo.channel"
+                @update:value="updateChannel"
+                size="small"
+            ></n-select>
             <span> 路径 </span>
             <m-path :path="activeProjectInfo.path"></m-path>
             <span> 类型 </span>
