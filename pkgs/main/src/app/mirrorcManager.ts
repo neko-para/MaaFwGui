@@ -21,6 +21,9 @@ export class MfgMirrorcManager {
             if (result && (typeof result !== 'string' || result === 'resource_quota_exhausted')) {
                 this.authToken = token
                 await mfgApp.saveConfig()
+
+                globalThis.renderer.utils.showToast('success', '配置成功')
+
                 return true
             } else {
                 await globalThis.renderer.utils.showToast(

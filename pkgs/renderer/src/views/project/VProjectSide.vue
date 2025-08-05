@@ -50,7 +50,14 @@ async function requestImport(type: 'archive' | 'github' | 'mirrorc') {
 }
 
 function checkMime(mime: string) {
-    return ['application/zip', 'application/x-gzip', 'application/x-gtar'].includes(mime)
+    return [
+        'application/zip',
+        'application/x-zip',
+        'application/zip-compressed',
+        'application/x-zip-compressed',
+        'application/x-gzip',
+        'application/x-gtar'
+    ].includes(mime)
 }
 
 function checkFile(file: File) {

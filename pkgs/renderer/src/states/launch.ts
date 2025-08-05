@@ -48,7 +48,7 @@ export function initLaunchHooks() {
     window.renderer.launch.addAgentOutput(async (lid, sid, output) => {
         agentOutput.value[lid] = agentOutput.value[lid] ?? {}
         agentOutput.value[lid][sid] = (agentOutput.value[lid][sid] ?? []).concat(
-            output.replaceAll(/\x1b\[\d+m/g, '')
+            ...output.replaceAll(/\x1b\[\d+m/g, '').split('\n')
         )
     })
 }

@@ -38,6 +38,9 @@ export class MfgGithubManager {
                 }
                 this.authToken = token
                 await mfgApp.saveConfig()
+
+                globalThis.renderer.utils.showToast('success', '配置成功')
+
                 return true
             } catch (err) {
                 globalThis.renderer.utils.showToast('error', `请求失败: ${err}`)
