@@ -317,7 +317,7 @@ export class MfgLaunchManager {
                 return false
             }
 
-            launch.instance.client.timeout = 5000
+            launch.instance.client.timeout = 30000
             launch.instance.client.bind_resource(launch.instance.resource)
 
             if (
