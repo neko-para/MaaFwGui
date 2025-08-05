@@ -89,7 +89,9 @@ class MfgApp {
             return true
         }
         globalThis.main.misc.openDevTools = () => {
-            window.webContents.openDevTools()
+            window.webContents.openDevTools({
+                mode: 'detach'
+            })
         }
     }
 
