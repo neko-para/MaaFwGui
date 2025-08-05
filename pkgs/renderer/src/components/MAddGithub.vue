@@ -18,7 +18,8 @@ const githubUrl = ref<string>('')
 const githubUrlValid = computed(() => {
     return (
         !!githubUrl.value &&
-        /^https?:\/\/github.com\/[^/]+\/[^/]+(?:.git|\/)?$/.test(githubUrl.value)
+        (/^https?:\/\/github.com\/[^/]+\/[^/]+(?:.git|\/)?$/.test(githubUrl.value) ||
+            /^[^/]+\/[^/]+$/.test(githubUrl.value))
     )
 })
 

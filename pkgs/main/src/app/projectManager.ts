@@ -11,15 +11,23 @@ import { window } from '../window'
 import { mfgApp } from './app'
 
 function extractGithubUrl(url: string) {
-    const match = /github.com\/([^/]+)\/([^/]+)\/?/.exec(url)
+    let match = /github.com\/([^/]+)\/([^/]+)\/?/.exec(url)
     if (match) {
         return {
             owner: match[1],
             repo: match[2]
         }
-    } else {
-        return null
     }
+
+    match = /^([^/]+)\/([^/]+)$/.exec(url)
+    if (match) {
+        return {
+            owner: match[1],
+            repo: match[2]
+        }
+    }
+
+    return null
 }
 
 function guessExtension(resp: axios.AxiosResponse<any, any>) {
