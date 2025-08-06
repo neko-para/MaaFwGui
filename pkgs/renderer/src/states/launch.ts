@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 export type LaunchCache = {
     activeOutput?: LaunchActiveOutput
+    latestOutput?: LaunchActiveOutput
     activeChanged?: boolean
     agentOutput?: Record<StageId, string[]>
     focusOutput?: Record<StageId, string[]>
@@ -78,6 +79,7 @@ export function initLaunchHooks() {
 
     window.renderer.launch.setActiveOutput(async (lid, output) => {
         launchCaches.value[lid] = launchCaches.value[lid] ?? {}
+        launchCaches.value[lid].latestOutput = output
         if (!launchCaches.value[lid].activeChanged) {
             launchCaches.value[lid].activeOutput = output
         }

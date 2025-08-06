@@ -120,22 +120,10 @@ async function moveStage(from: string, to: string, before: boolean) {
         </div>
 
         <template v-if="activeLaunchCache?.activeOutput">
-            <template v-if="activeLaunchCache.activeOutput.type === 'agent'">
-                <m-log-panel
-                    :type="`${stageName(activeProfileInfo, activeLaunchCache.activeOutput.stage)} Agent日志`"
-                    :logs="
-                        activeLaunchCache.agentOutput?.[activeLaunchCache.activeOutput.stage] ?? []
-                    "
-                ></m-log-panel>
-            </template>
-            <template v-else-if="activeLaunchCache.activeOutput.type === 'focus'">
-                <m-log-panel
-                    :type="`${stageName(activeProfileInfo, activeLaunchCache.activeOutput.stage)} 执行日志`"
-                    :logs="
-                        activeLaunchCache.focusOutput?.[activeLaunchCache.activeOutput.stage] ?? []
-                    "
-                ></m-log-panel>
-            </template>
+            <m-log-panel
+                :stage-name="stageName(activeProfileInfo, activeLaunchCache.activeOutput.stage)"
+                :cache="activeLaunchCache"
+            ></m-log-panel>
         </template>
     </div>
 </template>
