@@ -30,6 +30,12 @@ export class MfgLaunchManager {
                 globalThis.renderer.utils.showToast('error', '方案存在其它执行记录')
                 return
             }
+
+            let stoppedResolve: (v: null) => void = () => {}
+            const stoppedPromise = new Promise<null>(resolve => {
+                stoppedResolve = resolve
+            })
+
             const lid = generateId<LaunchId>()
             this.launchIndex[id] = lid
             this.launchInfo[lid] = {
@@ -41,7 +47,9 @@ export class MfgLaunchManager {
                     prepares: [],
                     tasks: {}
                 },
-                instance: {}
+                instance: {
+                    stopped: [stoppedPromise, stoppedResolve]
+                }
             }
             await globalThis.renderer.launch.updateIndex(this.launchIndex)
             await globalThis.renderer.launch.updateStatus(lid, this.launchInfo[lid].status)
@@ -53,10 +61,13 @@ export class MfgLaunchManager {
                 globalThis.renderer.utils.showToast('error', '未找到指定执行记录')
                 return
             }
-            launch.instance.postStop = launch.instance.tasker?.post_stop().wait().done
 
             launch.status.stopped = true
             await globalThis.renderer.launch.updateStatus(id, launch.status)
+
+            launch.instance.stopped[1](null)
+
+            launch.instance.postStop = launch.instance.tasker?.post_stop().wait().done
         }
         main.launch.del = async id => {
             const launch = this.launchInfo[id]
@@ -164,6 +175,8 @@ export class MfgLaunchManager {
     }
 
     async resetInstance(launch: LaunchInfo) {
+        // 等连接完成, 不然挂了
+        await launch.instance.postConn
         // 必须等待由于post_stop产生的任务完成，否则其回调会和这里的destroy死锁
         await launch.instance.postStop
 
@@ -298,12 +311,12 @@ export class MfgLaunchManager {
             launch.instance.client.timeout = 30000
             launch.instance.client.bind_resource(launch.instance.resource)
 
-            if (
-                !(await launch.instance.client.connect().then(
-                    () => true,
-                    () => false
-                ))
-            ) {
+            const connected = launch.instance.client.connect().then(
+                () => true,
+                () => false
+            )
+
+            if (!(await Promise.any([connected, launch.instance.stopped[0]]))) {
                 agentStatus.status = 'failed'
                 await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
@@ -360,7 +373,8 @@ export class MfgLaunchManager {
                 JSON.stringify(controllerMeta.adb?.config ?? {})
             )
 
-            if (!(await launch.instance.controller.post_connection().wait().succeeded)) {
+            launch.instance.postConn = launch.instance.controller.post_connection().wait().succeeded
+            if (!(await Promise.any([launch.instance.postConn, launch.instance.stopped[0]]))) {
                 connectStatus.status = 'failed'
                 await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
