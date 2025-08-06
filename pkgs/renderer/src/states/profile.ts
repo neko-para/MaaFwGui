@@ -14,6 +14,11 @@ export async function requestDelProfile(pid: ProfileId) {
     await syncProfile()
 }
 
+export async function requestDupProfile(pid: ProfileId) {
+    await window.main.profile.dup(pid)
+    await syncProfile()
+}
+
 export async function syncProfile() {
     profileInfo.value = await window.main.profile.query()
 }
@@ -28,6 +33,11 @@ export async function requestDelStage(pid: ProfileId, sid: StageId) {
     await syncProfile()
 }
 
+export async function requestDupStage(pid: ProfileId, sid: StageId) {
+    await window.main.stage.dup(pid, sid)
+    await syncProfile()
+}
+
 export async function requestNewTask(pid: ProfileId, sid: StageId) {
     await window.main.task.new(pid, sid)
     await syncProfile()
@@ -35,6 +45,11 @@ export async function requestNewTask(pid: ProfileId, sid: StageId) {
 
 export async function requestDelTask(pid: ProfileId, sid: StageId, tid: TaskId) {
     await window.main.task.del(pid, sid, tid)
+    await syncProfile()
+}
+
+export async function requestDupTask(pid: ProfileId, sid: StageId, tid: TaskId) {
+    await window.main.task.dup(pid, sid, tid)
     await syncProfile()
 }
 

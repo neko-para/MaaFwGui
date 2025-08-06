@@ -35,11 +35,11 @@ async function moveTask(from: string, to: string, before: boolean) {
             :items="activeStageInfo?.tasks ?? []"
             key-prop="id"
             half-gap="4px"
-            :get-real="el => el.parentElement?.parentElement?.parentElement"
+            :get-real="el => el.parentElement?.parentElement?.parentElement?.parentElement"
             @dragged="moveTask"
         >
             <template #anchor>
-                <div>排序</div>
+                <m-button class="pointer-events-none">排序</m-button>
             </template>
         </m-draggable>
     </div>

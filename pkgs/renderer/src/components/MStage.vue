@@ -5,7 +5,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { requestDelStage, syncProfile, useProfile } from '@/states/profile'
+import { requestDelStage, requestDupStage, syncProfile, useProfile } from '@/states/profile'
 import { projectInfo } from '@/states/project'
 
 import MButton from './MButton.vue'
@@ -64,7 +64,15 @@ async function selectProject(project: ProjectId) {
         size="small"
     >
         <template #header-extra>
-            <slot name="anchor"></slot>
+            <div class="flex items-center gap-2">
+                <slot name="anchor"></slot>
+                <m-button
+                    :action="async () => requestDupStage(profileId!, stageMeta!.id)"
+                    use-loading
+                >
+                    复制
+                </m-button>
+            </div>
         </template>
 
         <div class="form-grid items-center gap-2">

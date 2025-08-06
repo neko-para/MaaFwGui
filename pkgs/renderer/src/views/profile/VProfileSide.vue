@@ -3,7 +3,13 @@ import { useRouter } from 'vue-router'
 
 import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
-import { profileInfo, requestDelProfile, requestNewProfile, useProfile } from '@/states/profile'
+import {
+    profileInfo,
+    requestDelProfile,
+    requestDupProfile,
+    requestNewProfile,
+    useProfile
+} from '@/states/profile'
 
 const router = useRouter()
 const { profileId } = useProfile()
@@ -55,6 +61,7 @@ const { profileId } = useProfile()
         </template>
 
         <template #itemActions="{ item: profile }">
+            <m-button :action="() => requestDupProfile(profile.id)" use-loading> 复制 </m-button>
             <m-button :action="() => requestDelProfile(profile.id)" use-loading> 删除 </m-button>
         </template>
     </l-generic-side>

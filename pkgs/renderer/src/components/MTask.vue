@@ -4,8 +4,10 @@ import { NCard, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 
-import { requestDelTask, syncProfile, useProfile } from '@/states/profile'
+import { requestDelTask, requestDupTask, syncProfile, useProfile } from '@/states/profile'
 import { useInterface } from '@/states/project'
+
+import MButton from './MButton.vue'
 
 defineProps<{
     item: TaskInfo
@@ -71,7 +73,15 @@ async function selectOption(
         size="small"
     >
         <template #header-extra>
-            <slot name="anchor"></slot>
+            <div class="flex items-center gap-2">
+                <slot name="anchor"></slot>
+                <m-button
+                    :action="async () => requestDupTask(profileId!, stageId!, item.id)"
+                    use-loading
+                >
+                    复制
+                </m-button>
+            </div>
         </template>
 
         <div class="form-grid items-center gap-2">
