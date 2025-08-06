@@ -15,6 +15,46 @@ import * as path from 'path'
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
 
+type FocusNotify = {
+    start: string[]
+    succeeded: string[]
+    failed: string[]
+    toast?: string
+}
+
+function parseFocus(data: unknown): FocusNotify {
+    const result: FocusNotify = {
+        start: [],
+        succeeded: [],
+        failed: []
+    }
+    if (typeof data !== 'object' || data === null) {
+        return result
+    }
+    const check = (v: unknown): v is string | string[] => {
+        return (
+            typeof v === 'string' ||
+            (Array.isArray(v) && v.map(x => typeof x === 'string').reduce((a, b) => a && b, true))
+        )
+    }
+    const wrap = (v: string | string[]) => {
+        return typeof v === 'string' ? [v] : v
+    }
+    if ('start' in data && check(data.start)) {
+        result.start = wrap(data.start)
+    }
+    if ('succeeded' in data && check(data.succeeded)) {
+        result.succeeded = wrap(data.succeeded)
+    }
+    if ('failed' in data && check(data.failed)) {
+        result.failed = wrap(data.failed)
+    }
+    if ('toast' in data && typeof data.toast === 'string') {
+        result.toast = data.toast
+    }
+    return result
+}
+
 export class MfgLaunchManager {
     launchIndex: Record<ProfileId, LaunchId> = {}
     launchInfo: Record<LaunchId, LaunchInfo> = {}
@@ -419,11 +459,74 @@ export class MfgLaunchManager {
         }
 
         launch.instance.tasker = new maa.Tasker()
-        launch.instance.tasker.notify = (msg, detail) => {
+        launch.instance.tasker.chain_parsed_notify(notify => {
             // TODO: 弹下focus, 可以抄下mfaa的协议
-            console.log(msg, detail)
-            globalThis.renderer.launch.addOutput(launch.id, stage.id, 'agent', `${msg} ${detail}`)
-        }
+            switch (notify.msg) {
+                case 'Task.Started':
+                    globalThis.renderer.launch.addOutput(
+                        launch.id,
+                        stage.id,
+                        'focus',
+                        `任务开始: ${launch.instance.currentTask ?? notify.entry}`
+                    )
+                    break
+                case 'Task.Completed':
+                    globalThis.renderer.launch.addOutput(
+                        launch.id,
+                        stage.id,
+                        'focus',
+                        `任务完成: ${launch.instance.currentTask ?? notify.entry}`
+                    )
+                    break
+                case 'Task.Failed':
+                    globalThis.renderer.launch.addOutput(
+                        launch.id,
+                        stage.id,
+                        'focus',
+                        `任务失败: ${launch.instance.currentTask ?? notify.entry}`
+                    )
+                    break
+                case 'NextList.Starting': {
+                    const focus = parseFocus(notify.focus)
+                    if (focus.start.length > 0) {
+                        globalThis.renderer.launch.addOutput(
+                            launch.id,
+                            stage.id,
+                            'focus',
+                            focus.start.join('\n')
+                        )
+                    }
+                    if (focus.toast && focus.toast.length > 0) {
+                        globalThis.renderer.utils.showToast('info', focus.toast)
+                    }
+                    break
+                }
+                case 'NextList.Succeeded': {
+                    const focus = parseFocus(notify.focus)
+                    if (focus.start.length > 0) {
+                        globalThis.renderer.launch.addOutput(
+                            launch.id,
+                            stage.id,
+                            'focus',
+                            focus.succeeded.join('\n')
+                        )
+                    }
+                    break
+                }
+                case 'NextList.Failed': {
+                    const focus = parseFocus(notify.focus)
+                    if (focus.start.length > 0) {
+                        globalThis.renderer.launch.addOutput(
+                            launch.id,
+                            stage.id,
+                            'focus',
+                            focus.failed.join('\n')
+                        )
+                    }
+                    break
+                }
+            }
+        })
         launch.instance.tasker.bind(launch.instance.controller)
         launch.instance.tasker.bind(launch.instance.resource)
 

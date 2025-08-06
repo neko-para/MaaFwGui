@@ -20,6 +20,8 @@ export type LaunchInfo = {
         stopped: [Promise<null>, (v: null) => void]
         postStop?: Promise<boolean>
         postConn?: Promise<boolean>
+
+        currentTask?: string
     }
 }
 
