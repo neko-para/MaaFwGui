@@ -21,10 +21,14 @@ defineProps<{
 
             <div class="flex gap-2">
                 <div class="flex flex-col gap-2 flex-1">
-                    <div class="flex items-center gap-2">
-                        <span> 连接设备 </span>
+                    <div
+                        v-for="(prepare, idx) of status.prepares"
+                        :key="idx"
+                        class="flex items-center gap-2"
+                    >
+                        <span> {{ prepare.stage }} </span>
                         <div class="flex-1"></div>
-                        <m-status :status="status.tasks[stage.id]"></m-status>
+                        <m-status :status="prepare.status"></m-status>
                     </div>
 
                     <div v-for="task in stage.tasks" :key="task.id" class="flex items-center gap-2">

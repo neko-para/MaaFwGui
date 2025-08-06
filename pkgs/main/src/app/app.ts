@@ -40,7 +40,7 @@ class MfgApp {
 
     async init() {
         await fs.mkdir(this.root, { recursive: true })
-        await fs.rm(path.join(this.root, 'temp'), { recursive: true })
+        await fs.rm(path.join(this.root, 'temp'), { recursive: true, force: true })
 
         await this.loadConfig()
 

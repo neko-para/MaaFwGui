@@ -23,11 +23,17 @@ export type LaunchInfo = {
 
 export type Status = 'running' | 'succeeded' | 'failed'
 
+export type LaunchPrepareStatus = {
+    stage: string
+    status?: Status
+}
+
 export type LaunchStatus = {
     profile: ProfileId
     stopped?: boolean
 
     // not exists means `pending`
     stages: Record<StageId, Status>
-    tasks: Record<TaskId | StageId, Status>
+    prepares: LaunchPrepareStatus[]
+    tasks: Record<TaskId, Status>
 }

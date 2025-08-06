@@ -3,6 +3,7 @@ import {
     Interface,
     LaunchId,
     LaunchInfo,
+    LaunchPrepareStatus,
     LaunchStatus,
     ProfileId,
     StageInfo,
@@ -37,12 +38,13 @@ export class MfgLaunchManager {
                     profile: id,
 
                     stages: {},
+                    prepares: [],
                     tasks: {}
                 },
                 instance: {}
             }
-            await renderer.launch.updateIndex(this.launchIndex)
-            await renderer.launch.updateStatus(lid, this.launchInfo[lid].status)
+            await globalThis.renderer.launch.updateIndex(this.launchIndex)
+            await globalThis.renderer.launch.updateStatus(lid, this.launchInfo[lid].status)
             this.launch(id)
         }
         main.launch.stop = async id => {
@@ -54,7 +56,7 @@ export class MfgLaunchManager {
             launch.instance.postStop = launch.instance.tasker?.post_stop().wait().done
 
             launch.status.stopped = true
-            await renderer.launch.updateStatus(id, launch.status)
+            await globalThis.renderer.launch.updateStatus(id, launch.status)
         }
         main.launch.del = async id => {
             const launch = this.launchInfo[id]
@@ -69,8 +71,8 @@ export class MfgLaunchManager {
             delete this.launchIndex[launch.status.profile]
             delete this.launchInfo[id]
 
-            await renderer.launch.updateIndex(this.launchIndex)
-            await renderer.launch.updateStatus(id)
+            await globalThis.renderer.launch.updateIndex(this.launchIndex)
+            await globalThis.renderer.launch.updateStatus(id)
         }
         main.launch.syncIndex = () => {
             return this.launchIndex
@@ -107,16 +109,16 @@ export class MfgLaunchManager {
         }
 
         launch.status.stopped = true
-        await renderer.launch.updateStatus(lid, launch.status)
+        await globalThis.renderer.launch.updateStatus(lid, launch.status)
     }
 
     async launchStage(launch: LaunchInfo, stage: StageInfo) {
         launch.status.stages[stage.id] = 'running'
-        await renderer.launch.updateStatus(launch.id, launch.status)
+        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
         const result = await this.launchStageImpl(launch, stage)
         launch.status.stages[stage.id] = result ? 'succeeded' : 'failed'
-        await renderer.launch.updateStatus(launch.id, launch.status)
+        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
         await this.resetInstance(launch)
 
@@ -136,16 +138,9 @@ export class MfgLaunchManager {
             return false
         }
 
-        launch.status.tasks[stage.id] = 'running'
-        await renderer.launch.updateStatus(launch.id, launch.status)
-
         if (!(await this.prepareInstance(launch, stage, interfaceData))) {
-            launch.status.tasks[stage.id] = 'failed'
             return false
         }
-
-        launch.status.tasks[stage.id] = 'succeeded'
-        await renderer.launch.updateStatus(launch.id, launch.status)
 
         for (const task of stage.tasks ?? []) {
             if (launch.status.stopped) {
@@ -153,12 +148,12 @@ export class MfgLaunchManager {
             }
 
             launch.status.tasks[task.id] = 'running'
-            await renderer.launch.updateStatus(launch.id, launch.status)
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
             const result = await this.launchTask(launch, stage, task, interfaceData)
 
             launch.status.tasks[task.id] = result ? 'succeeded' : 'failed'
-            await renderer.launch.updateStatus(launch.id, launch.status)
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
             if (!result) {
                 return false
@@ -196,25 +191,54 @@ export class MfgLaunchManager {
     }
 
     async prepareInstanceImpl(launch: LaunchInfo, stage: StageInfo, interfaceData: Interface) {
+        const connectStatus: LaunchPrepareStatus = {
+            stage: '连接设备',
+            status: 'running'
+        }
+        let agentStatus: LaunchPrepareStatus | null = null
+        if (interfaceData.agent) {
+            agentStatus = {
+                stage: '连接Agent'
+            }
+        }
+
+        launch.status.prepares.push(connectStatus)
+        if (agentStatus) {
+            launch.status.prepares.push(agentStatus)
+        }
+        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
         if (!stage.controller) {
+            connectStatus.status = 'failed'
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
             globalThis.renderer.utils.showToast('error', '未指定控制器')
             return false
         }
 
         const controllerMeta = interfaceData.controller.find(x => x.name === stage.controller)
         if (!controllerMeta) {
+            connectStatus.status = 'failed'
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
             globalThis.renderer.utils.showToast('error', `未找到控制器 ${stage.controller}`)
             return false
         }
 
         if (controllerMeta.type === 'Adb') {
             if (!stage.adb) {
+                connectStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
                 globalThis.renderer.utils.showToast('error', '未指定设备')
                 return false
             }
 
             const dev = mfgApp.config.devices?.find(x => x.id === stage.adb)
             if (!dev) {
+                connectStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
                 globalThis.renderer.utils.showToast('error', '未找到指定设备')
                 return false
             }
@@ -227,14 +251,27 @@ export class MfgLaunchManager {
             )
 
             if (!(await launch.instance.controller.post_connection().wait().succeeded)) {
+                connectStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
                 globalThis.renderer.utils.showToast('error', '连接失败')
                 return false
             }
             if (!launch.instance.controller.connected) {
+                connectStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
                 globalThis.renderer.utils.showToast('error', '连接失败')
                 return false
             }
+
+            connectStatus.status = 'succeeded'
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
         } else {
+            connectStatus.status = 'failed'
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
+            globalThis.renderer.utils.showToast('error', '暂不支持其它类型的控制器')
             return false
         }
 
@@ -271,7 +308,10 @@ export class MfgLaunchManager {
             }
         }
 
-        if (interfaceData.agent && interfaceData.agent.child_exec) {
+        if (agentStatus && interfaceData.agent && interfaceData.agent.child_exec) {
+            agentStatus.status = 'running'
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
             launch.instance.client = new maa.AgentClient()
             const identifier = launch.instance.client.identifier ?? 'vsc-no-identifier'
 
@@ -283,6 +323,7 @@ export class MfgLaunchManager {
                         .concat([identifier]),
                     {
                         stdio: 'pipe',
+                        shell: true,
                         cwd: projectDir,
                         env: {
                             MFG_AGENT: '1',
@@ -305,16 +346,17 @@ export class MfgLaunchManager {
                 }
 
                 cp.stdout.on('data', (chunk: Buffer) => {
-                    console.log(chunk.toString())
                     globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
                 })
                 cp.stderr.on('data', (chunk: Buffer) => {
-                    console.log(chunk.toString())
                     globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
                 })
 
                 launch.instance.agent = cp
             } catch (err) {
+                agentStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
                 globalThis.renderer.utils.showToast('error', `启动Agent失败 ${err}`)
                 return false
             }
@@ -328,8 +370,14 @@ export class MfgLaunchManager {
                     () => false
                 ))
             ) {
+                agentStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
                 globalThis.renderer.utils.showToast('error', '连接Agent失败')
                 return false
+            } else {
+                agentStatus.status = 'running'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
             }
         }
 
