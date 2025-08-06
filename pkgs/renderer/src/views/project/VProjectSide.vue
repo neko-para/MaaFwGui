@@ -130,7 +130,7 @@ async function drop(e: DragEvent) {
 
         <template #bottom>
             <div
-                class="flex-1 min-h-8 max-h-80 mt-auto border-dashed border-gray-500 border flex flex-col items-center justify-center"
+                class="h-80 mt-auto border-dashed border-gray-500 border flex flex-col items-center justify-center"
                 @dragover="dragOver"
                 @drop="drop"
             >

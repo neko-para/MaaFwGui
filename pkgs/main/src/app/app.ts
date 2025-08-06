@@ -43,6 +43,8 @@ class MfgApp {
 
         await this.loadConfig()
 
+        maa.Global.log_dir = this.root
+
         this.initUtils()
         this.initMiscs()
 
