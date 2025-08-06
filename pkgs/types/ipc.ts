@@ -1,5 +1,5 @@
 import type { GlobalConfig } from './config'
-import type { AdbDevice } from './device'
+import type { AdbDevice, AdbDeviceId } from './device'
 import type { LaunchId, LaunchStatus } from './launch'
 import type { Interface } from './pi'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
@@ -62,6 +62,7 @@ export type MainService = {
     'project.loadInterface': (id: ProjectId) => Interface | null
 
     'device.query': () => AdbDevice[]
+    'device.del': (did: AdbDeviceId) => void
     'device.scan': () => AdbDevice[]
 
     'github.hasToken': () => boolean

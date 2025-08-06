@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 
 import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
-import { deviceInfo, requestScanDevices } from '@/states/device'
+import { deviceInfo, requestDelDevice, requestScanDevices } from '@/states/device'
 
 const router = useRouter()
 </script>
@@ -32,6 +32,8 @@ const router = useRouter()
             </div>
         </template>
 
-        <template #itemActions> </template>
+        <template #itemActions="{ item: dev }">
+            <m-button :action="() => requestDelDevice(dev.id)" use-loading> 删除 </m-button>
+        </template>
     </l-generic-side>
 </template>

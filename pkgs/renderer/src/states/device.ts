@@ -8,6 +8,11 @@ export async function requestScanDevices() {
     deviceInfo.value = await window.main.device.scan()
 }
 
+export async function requestDelDevice(id: AdbDeviceId) {
+    await window.main.device.del(id)
+    await syncDevices()
+}
+
 export async function syncDevices() {
     deviceInfo.value = await window.main.device.query()
 }

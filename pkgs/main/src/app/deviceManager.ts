@@ -9,7 +9,26 @@ export class MfgDeviceManager {
         globalThis.main.device.query = () => {
             return mfgApp.config.devices ?? []
         }
+        globalThis.main.device.del = async id => {
+            mfgApp.config.devices = mfgApp.config.devices ?? []
+            const devIndex = mfgApp.config.devices.findIndex(x => x.id === id)
+            if (devIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定设备')
+                return
+            }
 
+            for (const profile of mfgApp.config.profiles ?? []) {
+                for (const stage of profile.stages) {
+                    if (stage.adb === id) {
+                        globalThis.renderer.utils.showToast('error', '设备已被引用')
+                        return
+                    }
+                }
+            }
+
+            mfgApp.config.devices.splice(devIndex, 1)
+            await mfgApp.saveConfig()
+        }
         globalThis.main.device.scan = async () => {
             mfgApp.config.devices = mfgApp.config.devices ?? []
 
