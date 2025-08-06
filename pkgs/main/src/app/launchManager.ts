@@ -307,7 +307,7 @@ export class MfgLaunchManager {
                 stage: stage.id
             })
 
-            launch.instance.client = new maa.AgentClient('mfg-test')
+            launch.instance.client = new maa.AgentClient()
             const identifier = launch.instance.client.identifier ?? 'mfg-no-identifier'
 
             try {
