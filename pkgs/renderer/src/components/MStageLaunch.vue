@@ -14,7 +14,7 @@ defineProps<{
 
 <template>
     <div class="flex gap-2">
-        <n-card :title="stage.name" class="flex-1" size="small">
+        <n-card :title="stage.name" size="small">
             <template #header-extra>
                 <m-status :status="status.stages[stage.id]"></m-status>
             </template>
@@ -39,12 +39,18 @@ defineProps<{
                 </div>
             </div>
         </n-card>
-        <n-scrollbar class="max-w-1/2 max-h-32 p-2 flex flex-col">
-            <div class="flex flex-col gap-0.5">
-                <span v-for="(output, idx) of agentOutput[launch]?.[stage.id] ?? []" :key="idx">
-                    {{ output }}
-                </span>
-            </div>
-        </n-scrollbar>
+        <div class="min-w-80 max-w-80 max-h-40">
+            <n-scrollbar class="p-2 flex flex-col">
+                <div class="flex flex-col gap-0.5">
+                    <span
+                        v-for="(output, idx) of agentOutput[launch]?.[stage.id] ?? []"
+                        :key="idx"
+                        class="wrap-anywhere"
+                    >
+                        {{ output }}
+                    </span>
+                </div>
+            </n-scrollbar>
+        </div>
     </div>
 </template>

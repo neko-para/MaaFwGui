@@ -191,21 +191,131 @@ export class MfgLaunchManager {
     }
 
     async prepareInstanceImpl(launch: LaunchInfo, stage: StageInfo, interfaceData: Interface) {
-        const connectStatus: LaunchPrepareStatus = {
-            stage: '连接设备',
-            status: 'running'
-        }
         let agentStatus: LaunchPrepareStatus | null = null
         if (interfaceData.agent) {
             agentStatus = {
                 stage: '连接Agent'
             }
         }
-
-        launch.status.prepares.push(connectStatus)
         if (agentStatus) {
             launch.status.prepares.push(agentStatus)
         }
+
+        const connectStatus: LaunchPrepareStatus = {
+            stage: '连接设备'
+        }
+        launch.status.prepares.push(connectStatus)
+
+        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
+        if (!stage.resource) {
+            globalThis.renderer.utils.showToast('error', '未指定资源')
+            return false
+        }
+
+        const resourceMeta = interfaceData.resource.find(x => x.name === stage.resource)
+        if (!resourceMeta) {
+            globalThis.renderer.utils.showToast('error', `未找到资源 ${stage.resource}`)
+            return false
+        }
+
+        const proj = mfgApp.config.projects?.find(x => x.id === stage.project)
+        if (!proj) {
+            // 按理说不应该, 大概是用户在搞事
+            globalThis.renderer.utils.showToast('error', '未找到指定项目')
+            return false
+        }
+        const projectDir = path.dirname(proj.path)
+
+        launch.instance.resource = new maa.Resource()
+        let resPaths = resourceMeta.path
+        if (typeof resPaths === 'string') {
+            resPaths = [resPaths]
+        }
+        resPaths = resPaths.map(p => p.replaceAll('{PROJECT_DIR}', projectDir))
+
+        for (const resp of resPaths) {
+            if (!(await launch.instance.resource.post_bundle(resp).wait().succeeded)) {
+                globalThis.renderer.utils.showToast('error', '资源加载失败')
+                return false
+            }
+        }
+
+        if (agentStatus && interfaceData.agent && interfaceData.agent.child_exec) {
+            agentStatus.status = 'running'
+            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
+            launch.instance.client = new maa.AgentClient('mfg-test')
+            const identifier = launch.instance.client.identifier ?? 'mfg-no-identifier'
+
+            try {
+                const cp = child_process.spawn(
+                    interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir),
+                    (interfaceData.agent.child_args ?? [])
+                        .map(arg => arg.replaceAll('{PROJECT_DIR}', projectDir))
+                        .concat([identifier]),
+                    {
+                        stdio: 'pipe',
+                        shell: true,
+                        cwd: projectDir,
+                        env: {
+                            MFG_AGENT: '1',
+                            MFG_AGENT_ROOT: projectDir,
+                            MFG_AGENT_RESOURCE: resPaths.join(path.delimiter),
+                            TMPDIR: process.env['TMPDIR']
+                        }
+                    }
+                )
+
+                const spawnErr = await new Promise<Error | null>(resolve => {
+                    cp.on('spawn', () => {
+                        resolve(null)
+                    })
+                    cp.on('error', err => {
+                        resolve(err)
+                    })
+                })
+                if (spawnErr) {
+                    throw spawnErr
+                }
+
+                cp.stdout.on('data', (chunk: Buffer) => {
+                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
+                })
+                cp.stderr.on('data', (chunk: Buffer) => {
+                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
+                })
+
+                launch.instance.agent = cp
+            } catch (err) {
+                agentStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
+                globalThis.renderer.utils.showToast('error', `启动Agent失败 ${err}`)
+                return false
+            }
+
+            launch.instance.client.timeout = 30000
+            launch.instance.client.bind_resource(launch.instance.resource)
+
+            if (
+                !(await launch.instance.client.connect().then(
+                    () => true,
+                    () => false
+                ))
+            ) {
+                agentStatus.status = 'failed'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+
+                globalThis.renderer.utils.showToast('error', '连接Agent失败')
+                return false
+            } else {
+                agentStatus.status = 'succeeded'
+                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+            }
+        }
+
+        connectStatus.status = 'running'
         await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
 
         if (!stage.controller) {
@@ -273,112 +383,6 @@ export class MfgLaunchManager {
 
             globalThis.renderer.utils.showToast('error', '暂不支持其它类型的控制器')
             return false
-        }
-
-        if (!stage.resource) {
-            globalThis.renderer.utils.showToast('error', '未指定资源')
-            return false
-        }
-
-        const resourceMeta = interfaceData.resource.find(x => x.name === stage.resource)
-        if (!resourceMeta) {
-            globalThis.renderer.utils.showToast('error', `未找到资源 ${stage.resource}`)
-            return false
-        }
-
-        const proj = mfgApp.config.projects?.find(x => x.id === stage.project)
-        if (!proj) {
-            // 按理说不应该, 大概是用户在搞事
-            globalThis.renderer.utils.showToast('error', '未找到指定项目')
-            return false
-        }
-        const projectDir = path.dirname(proj.path)
-
-        launch.instance.resource = new maa.Resource()
-        let resPaths = resourceMeta.path
-        if (typeof resPaths === 'string') {
-            resPaths = [resPaths]
-        }
-        resPaths = resPaths.map(p => p.replaceAll('{PROJECT_DIR}', projectDir))
-
-        for (const resp of resPaths) {
-            if (!(await launch.instance.resource.post_bundle(resp).wait().succeeded)) {
-                globalThis.renderer.utils.showToast('error', '资源加载失败')
-                return false
-            }
-        }
-
-        if (agentStatus && interfaceData.agent && interfaceData.agent.child_exec) {
-            agentStatus.status = 'running'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-            launch.instance.client = new maa.AgentClient()
-            const identifier = launch.instance.client.identifier ?? 'vsc-no-identifier'
-
-            try {
-                const cp = child_process.spawn(
-                    interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir),
-                    (interfaceData.agent.child_args ?? [])
-                        .map(arg => arg.replaceAll('{PROJECT_DIR}', projectDir))
-                        .concat([identifier]),
-                    {
-                        stdio: 'pipe',
-                        shell: true,
-                        cwd: projectDir,
-                        env: {
-                            MFG_AGENT: '1',
-                            MFG_AGENT_ROOT: projectDir,
-                            MFG_AGENT_RESOURCE: resPaths.join(path.delimiter)
-                        }
-                    }
-                )
-
-                const spawnErr = await new Promise<Error | null>(resolve => {
-                    cp.on('spawn', () => {
-                        resolve(null)
-                    })
-                    cp.on('error', err => {
-                        resolve(err)
-                    })
-                })
-                if (spawnErr) {
-                    throw spawnErr
-                }
-
-                cp.stdout.on('data', (chunk: Buffer) => {
-                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
-                })
-                cp.stderr.on('data', (chunk: Buffer) => {
-                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
-                })
-
-                launch.instance.agent = cp
-            } catch (err) {
-                agentStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', `启动Agent失败 ${err}`)
-                return false
-            }
-
-            launch.instance.client.timeout = 30000
-            launch.instance.client.bind_resource(launch.instance.resource)
-
-            if (
-                !(await launch.instance.client.connect().then(
-                    () => true,
-                    () => false
-                ))
-            ) {
-                agentStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', '连接Agent失败')
-                return false
-            } else {
-                agentStatus.status = 'running'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-            }
         }
 
         launch.instance.tasker = new maa.Tasker()
