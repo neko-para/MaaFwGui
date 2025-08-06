@@ -12,7 +12,7 @@ const { profileId, stageId, activeProfileInfo } = useProfile()
 <template>
     <l-generic-side
         title="步骤列表"
-        :items="activeProfileInfo?.stages ?? []"
+        :items="activeProfileInfo?.stages.filter(stage => stage.project) ?? []"
         key-prop="id"
         @click="
             stage => {
