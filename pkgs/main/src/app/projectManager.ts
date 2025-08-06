@@ -630,6 +630,8 @@ export class MfgProjectManager {
             }
         }
 
+        await fs.rm(tempRoot, { recursive: true })
+
         return true
     }
 
