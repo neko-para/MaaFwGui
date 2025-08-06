@@ -70,3 +70,8 @@ export function useProfile() {
         activeStageInfo
     }
 }
+
+export function stageName(profile: ProfileInfo, sid: StageId) {
+    const stage = profile.stages.find(x => x.id === sid)
+    return stage?.name ?? '<未命名步骤>'
+}

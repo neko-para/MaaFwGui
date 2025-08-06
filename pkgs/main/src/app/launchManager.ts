@@ -153,6 +153,10 @@ export class MfgLaunchManager {
             return false
         }
 
+        await globalThis.renderer.launch.setActiveOutput(launch.id, {
+            type: 'focus',
+            stage: stage.id
+        })
         for (const task of stage.tasks ?? []) {
             if (launch.status.stopped) {
                 return false
@@ -255,8 +259,13 @@ export class MfgLaunchManager {
         }
 
         if (agentStatus && interfaceData.agent && interfaceData.agent.child_exec) {
+            launch.status.hasAgent = true
             agentStatus.status = 'running'
             await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
+            await globalThis.renderer.launch.setActiveOutput(launch.id, {
+                type: 'agent',
+                stage: stage.id
+            })
 
             launch.instance.client = new maa.AgentClient('mfg-test')
             const identifier = launch.instance.client.identifier ?? 'mfg-no-identifier'
@@ -293,10 +302,20 @@ export class MfgLaunchManager {
                 }
 
                 cp.stdout.on('data', (chunk: Buffer) => {
-                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
+                    globalThis.renderer.launch.addOutput(
+                        launch.id,
+                        stage.id,
+                        'agent',
+                        chunk.toString()
+                    )
                 })
                 cp.stderr.on('data', (chunk: Buffer) => {
-                    globalThis.renderer.launch.addAgentOutput(launch.id, stage.id, chunk.toString())
+                    globalThis.renderer.launch.addOutput(
+                        launch.id,
+                        stage.id,
+                        'agent',
+                        chunk.toString()
+                    )
                 })
 
                 launch.instance.agent = cp
@@ -403,6 +422,7 @@ export class MfgLaunchManager {
         launch.instance.tasker.notify = (msg, detail) => {
             // TODO: 弹下focus, 可以抄下mfaa的协议
             console.log(msg, detail)
+            globalThis.renderer.launch.addOutput(launch.id, stage.id, 'agent', `${msg} ${detail}`)
         }
         launch.instance.tasker.bind(launch.instance.controller)
         launch.instance.tasker.bind(launch.instance.resource)

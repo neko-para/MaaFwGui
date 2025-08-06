@@ -5,21 +5,23 @@ import { ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
 import MDraggable from '@/components/MDraggable.vue'
+import MLogPanel from '@/components/MLogPanel.vue'
 import MStage from '@/components/MStage.vue'
 import MStageLaunch from '@/components/MStageLaunch.vue'
-import { useLaunch } from '@/states/launch'
+import { launchStatus, useLaunch } from '@/states/launch'
 import {
     requestDelLaunch,
     requestNewLaunch,
     requestNewStage,
     requestStopLaunch,
+    stageName,
     syncProfile,
     useProfile
 } from '@/states/profile'
 
 const { activeProfileInfo, profileId } = useProfile()
 
-const { launchId, activeLaunchStatus } = useLaunch(() => profileId.value)
+const { launchId, activeLaunchStatus, activeLaunchCache } = useLaunch(() => profileId.value)
 
 async function updateName(name: string) {
     await window.main.profile.update(profileId.value!, {
@@ -35,7 +37,7 @@ async function moveStage(from: string, to: string, before: boolean) {
 </script>
 
 <template>
-    <div v-if="profileId && activeProfileInfo" class="flex flex-col gap-2 m-4 min-h-0 grow-0">
+    <div v-if="profileId && activeProfileInfo" class="flex flex-col gap-2 m-4 min-h-0 flex-1">
         <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 基础信息 </span>
@@ -79,7 +81,7 @@ async function moveStage(from: string, to: string, before: boolean) {
             </div>
         </div>
 
-        <div class="flex flex-col gap-2 min-h-0 grow-0">
+        <div class="flex flex-col gap-2 min-h-0 flex-1">
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 步骤列表 </span>
                 <div class="flex-1"></div>
@@ -116,5 +118,24 @@ async function moveStage(from: string, to: string, before: boolean) {
                 </div>
             </n-scrollbar>
         </div>
+
+        <template v-if="activeLaunchCache?.activeOutput">
+            <template v-if="activeLaunchCache.activeOutput.type === 'agent'">
+                <m-log-panel
+                    :type="`${stageName(activeProfileInfo, activeLaunchCache.activeOutput.stage)} Agent日志`"
+                    :logs="
+                        activeLaunchCache.agentOutput?.[activeLaunchCache.activeOutput.stage] ?? []
+                    "
+                ></m-log-panel>
+            </template>
+            <template v-else-if="activeLaunchCache.activeOutput.type === 'focus'">
+                <m-log-panel
+                    :type="`${stageName(activeProfileInfo, activeLaunchCache.activeOutput.stage)} 执行日志`"
+                    :logs="
+                        activeLaunchCache.focusOutput?.[activeLaunchCache.activeOutput.stage] ?? []
+                    "
+                ></m-log-panel>
+            </template>
+        </template>
     </div>
 </template>

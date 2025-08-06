@@ -1,6 +1,6 @@
 import type { GlobalConfig } from './config'
 import type { AdbDevice, AdbDeviceId } from './device'
-import type { LaunchId, LaunchStatus } from './launch'
+import type { LaunchActiveOutput, LaunchId, LaunchStatus } from './launch'
 import type { Interface } from './pi'
 import type { ProfileId, ProfileInfo, StageId, StageInfo, TaskId, TaskInfo } from './profile'
 import type { ProjectId, ProjectInfo } from './project'
@@ -77,7 +77,13 @@ export type MainService = {
 export type RendererService = {
     'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
-    'launch.addAgentOutput': (lid: LaunchId, sid: StageId, output: string) => void
+    'launch.addOutput': (
+        lid: LaunchId,
+        sid: StageId,
+        type: 'agent' | 'focus',
+        output: string
+    ) => void
+    'launch.setActiveOutput': (lid: LaunchId, output: LaunchActiveOutput) => void
 
     'utils.showToast': (category: 'info' | 'warning' | 'error' | 'success', message: string) => void
     'utils.showProgress': (id: string, stage: string, progress?: number) => void

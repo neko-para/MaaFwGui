@@ -33,9 +33,20 @@ export type LaunchPrepareStatus = {
 export type LaunchStatus = {
     profile: ProfileId
     stopped?: boolean
+    hasAgent?: boolean
 
     // not exists means `pending`
     stages: Record<StageId, Status>
     prepares: LaunchPrepareStatus[]
     tasks: Record<TaskId, Status>
 }
+
+export type LaunchActiveOutput =
+    | {
+          type: 'agent'
+          stage: StageId
+      }
+    | {
+          type: 'focus'
+          stage: StageId
+      }

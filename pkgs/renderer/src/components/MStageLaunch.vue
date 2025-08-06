@@ -1,56 +1,62 @@
 <script setup lang="ts">
 import type { LaunchId, LaunchStatus, StageInfo } from '@mfg/types'
-import { NCard, NScrollbar } from 'naive-ui'
+import { NCard } from 'naive-ui'
 
 import MStatus from '@/components/MStatus.vue'
-import { agentOutput } from '@/states/launch'
+import { useLaunch } from '@/states/launch'
 
-defineProps<{
+import MButton from './MButton.vue'
+
+const props = defineProps<{
     launch: LaunchId
     stage: StageInfo
     status: LaunchStatus
 }>()
+
+const { activeLaunchCache } = useLaunch(() => props.status.profile)
+
+function switchOutput(type: 'agent' | 'focus') {
+    if (!activeLaunchCache.value) {
+        return
+    }
+    activeLaunchCache.value.activeChanged = true
+    activeLaunchCache.value.activeOutput = {
+        type,
+        stage: props.stage.id
+    }
+}
 </script>
 
 <template>
-    <div class="flex gap-2">
-        <n-card :title="stage.name" size="small">
-            <template #header-extra>
+    <n-card :title="stage.name" size="small">
+        <template #header-extra>
+            <div class="flex items-center gap-2">
+                <m-button v-if="status.hasAgent" @action="switchOutput('agent')">
+                    agent日志
+                </m-button>
+                <m-button @action="switchOutput('focus')"> 执行日志 </m-button>
                 <m-status :status="status.stages[stage.id]"></m-status>
-            </template>
+            </div>
+        </template>
 
-            <div class="flex gap-2">
-                <div class="flex flex-col gap-2 flex-1">
-                    <div
-                        v-for="(prepare, idx) of status.prepares"
-                        :key="idx"
-                        class="flex items-center gap-2"
-                    >
-                        <span> {{ prepare.stage }} </span>
-                        <div class="flex-1"></div>
-                        <m-status :status="prepare.status"></m-status>
-                    </div>
+        <div class="flex gap-2">
+            <div class="flex flex-col gap-2 flex-1">
+                <div
+                    v-for="(prepare, idx) of status.prepares"
+                    :key="idx"
+                    class="flex items-center gap-2"
+                >
+                    <span> {{ prepare.stage }} </span>
+                    <div class="flex-1"></div>
+                    <m-status :status="prepare.status"></m-status>
+                </div>
 
-                    <div v-for="task in stage.tasks" :key="task.id" class="flex items-center gap-2">
-                        <span> {{ task.task }} </span>
-                        <div class="flex-1"></div>
-                        <m-status :status="status.tasks[task.id]"></m-status>
-                    </div>
+                <div v-for="task in stage.tasks" :key="task.id" class="flex items-center gap-2">
+                    <span> {{ task.task }} </span>
+                    <div class="flex-1"></div>
+                    <m-status :status="status.tasks[task.id]"></m-status>
                 </div>
             </div>
-        </n-card>
-        <div class="min-w-80 max-w-80 max-h-40">
-            <n-scrollbar class="p-2 flex flex-col">
-                <div class="flex flex-col gap-0.5">
-                    <span
-                        v-for="(output, idx) of agentOutput[launch]?.[stage.id] ?? []"
-                        :key="idx"
-                        class="wrap-anywhere"
-                    >
-                        {{ output }}
-                    </span>
-                </div>
-            </n-scrollbar>
         </div>
-    </div>
+    </n-card>
 </template>
