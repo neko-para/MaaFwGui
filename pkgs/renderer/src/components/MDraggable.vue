@@ -87,21 +87,48 @@ function dragStart(sid: ItemId, ev: DragEvent) {
     dragging.value = sid
 }
 
+function throttle<Args extends unknown[]>(func: (...args: Args) => void, timeout = 100) {
+    let timer: NodeJS.Timeout | null = null
+
+    return (...args: Args) => {
+        if (timer) {
+            return
+        }
+        timer = setTimeout(() => {
+            timer = null
+        }, timeout)
+        func(...args)
+    }
+}
+
+const updateDragOver = throttle((sid: ItemId, divEl: HTMLDivElement, ev: DragEvent) => {
+    const cr = divEl.getBoundingClientRect()
+    const isUpper = ev.clientY - cr.y < cr.height / 2
+    dragOverTarget.value = [sid, isUpper]
+})
+
 function dragOver(sid: ItemId, ev: DragEvent) {
     if (!dragging.value) {
         return
     }
 
     if (!(ev.currentTarget instanceof HTMLDivElement)) {
+        console.log('dragOver: not div')
         return
     }
     const divEl = ev.currentTarget as HTMLDivElement
 
     ev.preventDefault()
-    const cr = divEl.getBoundingClientRect()
-    const isUpper = ev.clientY - cr.y < cr.height / 2
-    dragOverTarget.value = [sid, isUpper]
+
+    if (leaveTimer) {
+        clearTimeout(leaveTimer)
+        leaveTimer = null
+    }
+
+    updateDragOver(sid, divEl, ev)
 }
+
+let leaveTimer: NodeJS.Timeout | null = null
 
 function dragEnter(sid: ItemId, ev: DragEvent) {
     if (!dragging.value) {
@@ -109,6 +136,7 @@ function dragEnter(sid: ItemId, ev: DragEvent) {
     }
 
     if (!(ev.currentTarget instanceof HTMLDivElement)) {
+        console.log('dragEnter: not div')
         return
     }
     const divEl = ev.currentTarget as HTMLDivElement
@@ -118,9 +146,13 @@ function dragEnter(sid: ItemId, ev: DragEvent) {
     }
 
     ev.preventDefault()
-    const cr = divEl.getBoundingClientRect()
-    const isUpper = ev.clientY - cr.y < cr.height / 2
-    dragOverTarget.value = [sid, isUpper]
+
+    if (leaveTimer) {
+        clearTimeout(leaveTimer)
+        leaveTimer = null
+    }
+
+    updateDragOver(sid, divEl, ev)
 }
 
 function dragLeave(sid: ItemId, ev: DragEvent) {
@@ -128,9 +160,12 @@ function dragLeave(sid: ItemId, ev: DragEvent) {
         return
     }
 
-    if (dragOverTarget.value?.[0] === sid) {
-        dragOverTarget.value = null
-    }
+    leaveTimer = setTimeout(() => {
+        if (dragOverTarget.value?.[0] === sid) {
+            dragOverTarget.value = null
+        }
+        leaveTimer = null
+    }, 100)
 }
 
 function drop(sid: ItemId, ev: DragEvent) {
@@ -139,6 +174,7 @@ function drop(sid: ItemId, ev: DragEvent) {
     }
 
     if (dragOverTarget.value[0] !== sid) {
+        console.log('over target mismatch!')
         // ???
         return
     }
@@ -158,6 +194,10 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
 <template>
     <n-scrollbar>
         <div class="flex flex-col">
+            <span>
+                {{ dragging ?? 'no' }}
+                {{ dragOverTarget?.[0] ?? 'no' }}
+            </span>
             <div
                 v-for="(item, index) in items"
                 :key="keyOf(item)"
