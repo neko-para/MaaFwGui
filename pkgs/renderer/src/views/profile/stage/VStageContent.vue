@@ -15,7 +15,9 @@ const { profileId, stageId, activeStageInfo } = useProfile()
 async function newTask() {
     const id = await requestNewTask(profileId.value!, stageId.value!)
     if (id) {
-        draggableEl.value?.revealItem(id)
+        setTimeout(() => {
+            draggableEl.value?.revealItem(id)
+        }, 1)
     }
 }
 

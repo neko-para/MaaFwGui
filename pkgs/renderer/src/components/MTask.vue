@@ -6,10 +6,11 @@ import { computed } from 'vue'
 
 import { requestDelTask, requestDupTask, syncProfile, useProfile } from '@/states/profile'
 import { useInterface } from '@/states/project'
+import { StageRevealTask } from '@/views/profile/stage'
 
 import MButton from './MButton.vue'
 
-defineProps<{
+const props = defineProps<{
     item: TaskInfo
     reveal: boolean
 }>()
@@ -17,6 +18,15 @@ defineProps<{
 const { profileId, stageId, activeStageInfo } = useProfile()
 
 const { interfaceData } = useInterface(() => activeStageInfo.value?.project)
+
+async function dupTask() {
+    const id = await requestDupTask(profileId.value!, stageId.value!, props.item.id)
+    if (id) {
+        setTimeout(() => {
+            StageRevealTask.value(id)
+        }, 1)
+    }
+}
 
 const taskOptions = computed(() => {
     return interfaceData.value?.task.map(task => {
@@ -77,12 +87,7 @@ async function selectOption(
         <template #header-extra>
             <div class="flex items-center gap-2">
                 <slot name="anchor"></slot>
-                <m-button
-                    :action="async () => requestDupTask(profileId!, stageId!, item.id)"
-                    use-loading
-                >
-                    复制
-                </m-button>
+                <m-button :action="dupTask" use-loading> 复制 </m-button>
             </div>
         </template>
 

@@ -61,7 +61,16 @@ const { profileId } = useProfile()
         </template>
 
         <template #itemActions="{ item: profile }">
-            <m-button :action="() => requestDupProfile(profile.id)" use-loading> 复制 </m-button>
+            <m-button
+                :action="
+                    async () => {
+                        await requestDupProfile(profile.id)
+                    }
+                "
+                use-loading
+            >
+                复制
+            </m-button>
             <m-button :action="() => requestDelProfile(profile.id)" use-loading> 删除 </m-button>
         </template>
     </l-generic-side>

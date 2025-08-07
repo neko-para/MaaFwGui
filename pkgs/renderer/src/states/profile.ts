@@ -15,8 +15,9 @@ export async function requestDelProfile(pid: ProfileId) {
 }
 
 export async function requestDupProfile(pid: ProfileId) {
-    await window.main.profile.dup(pid)
+    const id = await window.main.profile.dup(pid)
     await syncProfile()
+    return id
 }
 
 export async function syncProfile() {
@@ -35,8 +36,9 @@ export async function requestDelStage(pid: ProfileId, sid: StageId) {
 }
 
 export async function requestDupStage(pid: ProfileId, sid: StageId) {
-    await window.main.stage.dup(pid, sid)
+    const id = await window.main.stage.dup(pid, sid)
     await syncProfile()
+    return id
 }
 
 export async function requestNewTask(pid: ProfileId, sid: StageId) {
@@ -51,8 +53,9 @@ export async function requestDelTask(pid: ProfileId, sid: StageId, tid: TaskId) 
 }
 
 export async function requestDupTask(pid: ProfileId, sid: StageId, tid: TaskId) {
-    await window.main.task.dup(pid, sid, tid)
+    const id = await window.main.task.dup(pid, sid, tid)
     await syncProfile()
+    return id
 }
 
 export async function requestNewLaunch(pid: ProfileId) {

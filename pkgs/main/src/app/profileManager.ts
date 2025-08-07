@@ -75,11 +75,13 @@ export class MfgProfileManager {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
                 globalThis.renderer.utils.showToast('error', '未找到指定方案')
-                return
+                return null
             }
 
-            mfgApp.config.profiles!.push(cloneProfile(profile, true))
+            const newProfile = cloneProfile(profile, true)
+            mfgApp.config.profiles!.push(newProfile)
             await mfgApp.saveConfig()
+            return newProfile.id
         }
         globalThis.main.profile.update = async (id, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
@@ -124,16 +126,18 @@ export class MfgProfileManager {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
                 globalThis.renderer.utils.showToast('error', '未找到指定方案')
-                return
+                return null
             }
             const stageIdx = profile.stages.findIndex(s => s.id === sid)
             if (stageIdx === -1) {
                 globalThis.renderer.utils.showToast('error', '未找到指定步骤')
-                return
+                return null
             }
 
-            profile.stages.splice(stageIdx + 1, 0, cloneStage(profile.stages[stageIdx], true))
+            const newStage = cloneStage(profile.stages[stageIdx], true)
+            profile.stages.splice(stageIdx + 1, 0, newStage)
             await mfgApp.saveConfig()
+            return newStage.id
         }
         globalThis.main.stage.update = async (id, sid, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
@@ -216,20 +220,23 @@ export class MfgProfileManager {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
                 globalThis.renderer.utils.showToast('error', '未找到指定方案')
-                return
+                return null
             }
             const stage = profile.stages.find(s => s.id === sid)
             if (!stage) {
                 globalThis.renderer.utils.showToast('error', '未找到指定步骤')
-                return
+                return null
             }
             const taskIdx = stage.tasks?.findIndex(t => t.id === tid) ?? -1
             if (taskIdx === -1) {
                 globalThis.renderer.utils.showToast('error', '未找到指定任务')
-                return
+                return null
             }
-            stage.tasks?.splice(taskIdx + 1, 0, cloneTask(stage.tasks[taskIdx]))
+
+            const newTask = cloneTask(stage.tasks![taskIdx])
+            stage.tasks!.splice(taskIdx + 1, 0, newTask)
             await mfgApp.saveConfig()
+            return newTask.id
         }
         globalThis.main.task.update = async (id, sid, tid, cfg) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)

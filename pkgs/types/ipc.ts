@@ -28,18 +28,18 @@ export type MainService = {
     'profile.query': () => ProfileInfo[]
     'profile.new': () => void
     'profile.del': (id: ProfileId) => void
-    'profile.dup': (id: ProfileId) => void
+    'profile.dup': (id: ProfileId) => ProfileId | null
     'profile.update': (id: ProfileId, cfg: Partial<ProfileInfo>) => void
 
     'stage.new': (id: ProfileId) => StageId | null
     'stage.del': (id: ProfileId, sid: StageId) => void
-    'stage.dup': (id: ProfileId, sid: StageId) => void
+    'stage.dup': (id: ProfileId, sid: StageId) => StageId | null
     'stage.update': (id: ProfileId, sid: StageId, cfg: Partial<StageInfo>) => void
     'stage.move': (id: ProfileId, sid: StageId, sidTgt: StageId, before: boolean) => void
 
     'task.new': (id: ProfileId, sid: StageId) => TaskId | null
     'task.del': (id: ProfileId, sid: StageId, tid: TaskId) => void
-    'task.dup': (id: ProfileId, sid: StageId, tid: TaskId) => void
+    'task.dup': (id: ProfileId, sid: StageId, tid: TaskId) => TaskId | null
     'task.update': (id: ProfileId, sid: StageId, tid: TaskId, cfg: Partial<TaskInfo>) => void
     'task.move': (id: ProfileId, sid: StageId, tid: TaskId, tidTgt: TaskId, before: boolean) => void
 

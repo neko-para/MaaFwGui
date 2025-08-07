@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 
 import { requestDelStage, requestDupStage, syncProfile, useProfile } from '@/states/profile'
 import { projectInfo } from '@/states/project'
+import { ProfileRevealStage } from '@/views/profile'
 
 import MButton from './MButton.vue'
 import MConfigProject from './MConfigProject.vue'
@@ -44,6 +45,15 @@ async function updateStageName(name: string) {
     await syncProfile()
 }
 
+async function dupStage() {
+    const id = await requestDupStage(profileId.value!, props.id)
+    if (id) {
+        setTimeout(() => {
+            ProfileRevealStage.value(id)
+        }, 1)
+    }
+}
+
 async function selectProject(project: ProjectId) {
     await window.main.stage.update(profileId.value!, props.id, {
         project,
@@ -68,12 +78,7 @@ async function selectProject(project: ProjectId) {
         <template #header-extra>
             <div class="flex items-center gap-2">
                 <slot name="anchor"></slot>
-                <m-button
-                    :action="async () => requestDupStage(profileId!, stageMeta!.id)"
-                    use-loading
-                >
-                    复制
-                </m-button>
+                <m-button :action="dupStage" use-loading> 复制 </m-button>
             </div>
         </template>
 

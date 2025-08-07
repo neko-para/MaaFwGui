@@ -36,7 +36,9 @@ async function updateName(name: string) {
 async function newStage() {
     const id = await requestNewStage(profileId.value!)
     if (id) {
-        draggableEl.value?.revealItem(id)
+        setTimeout(() => {
+            draggableEl.value?.revealItem(id)
+        }, 1)
     }
 }
 
