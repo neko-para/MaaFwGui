@@ -61,6 +61,7 @@ export type MainService = {
     'project.delMirrorc': (id: ProjectId) => boolean
     'project.bindMirrorc': (id: ProjectId, rid: string) => boolean
     'project.checkUpdate': (id: ProjectId, via: 'github' | 'mirrorc') => boolean
+    'project.queryRef': (id: ProjectId) => [ProfileId, StageId][]
     'project.load': (id: ProjectId) => ProjectInfo | null
     'project.loadInterface': (id: ProjectId) => Interface | null
 

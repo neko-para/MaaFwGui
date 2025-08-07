@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { ProjectUpdateChannel } from '@mfg/types'
-import { NInput, NSelect } from 'naive-ui'
+import type { ProfileId, ProjectUpdateChannel, StageId } from '@mfg/types'
+import { NInput, NPopselect, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 import MAddGithub from '@/components/MAddGithub.vue'
 import MAddMirrorc from '@/components/MAddMirrorc.vue'
 import MButton from '@/components/MButton.vue'
 import MPath from '@/components/MPath.vue'
+import { findProfile, profileName, stageName } from '@/states/profile'
 import {
     requestCheckUpdate,
     requestDelGithubProject,
@@ -16,6 +18,10 @@ import {
     useInterface,
     useProject
 } from '@/states/project'
+
+import { ProfileRevealStage } from '../profile'
+
+const router = useRouter()
 
 const addGithubEl = ref<InstanceType<typeof MAddGithub> | null>(null)
 const addMirrorcEl = ref<InstanceType<typeof MAddMirrorc> | null>(null)
@@ -43,6 +49,46 @@ async function updateChannel(channel: ProjectUpdateChannel) {
     })
     await syncProjects()
 }
+
+const projectRef = ref<[ProfileId, StageId][]>([])
+
+const projectRefOptions = computed(() => {
+    return projectRef.value
+        .map(([pid, sid]) => {
+            const profile = findProfile(pid)
+            if (!profile) {
+                return null
+            }
+            const pname = profileName(pid)
+            const sname = stageName(profile, sid)
+            return {
+                value: [pid, sid].join(','),
+                label: `${pname} - ${sname}`
+            } satisfies SelectMixedOption
+        })
+        .filter(x => !!x)
+})
+
+function revealStage(info: string) {
+    const [pid, sid] = info.split(',')
+    router.back()
+    router.replace({
+        path: `/profile/${pid}`
+    })
+    setTimeout(() => {
+        ProfileRevealStage.value(sid as StageId)
+    }, 1)
+}
+
+watch(
+    () => projectId.value,
+    async id => {
+        projectRef.value = id ? await window.main.project.queryRef(id) : []
+    },
+    {
+        immediate: true
+    }
+)
 </script>
 
 <template>
@@ -124,6 +170,18 @@ async function updateChannel(channel: ProjectUpdateChannel) {
                     <template v-else>
                         <m-button :action="addMirrorcEl?.addMirrorc" use-loading> 添加 </m-button>
                     </template>
+                </div>
+            </template>
+            <template v-if="projectRef.length > 0">
+                <span> </span>
+                <div class="flex items-center gap-2">
+                    <n-popselect
+                        trigger="hover"
+                        :options="projectRefOptions"
+                        @update:value="revealStage"
+                    >
+                        <m-button> 查看引用 </m-button>
+                    </n-popselect>
                 </div>
             </template>
         </div>

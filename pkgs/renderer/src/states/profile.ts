@@ -91,7 +91,16 @@ export function useProfile() {
     }
 }
 
+export function findProfile(pid: ProfileId) {
+    return profileInfo.value.find(x => x.id === pid)
+}
+
+export function profileName(pid: ProfileId) {
+    const profile = findProfile(pid)
+    return profile && profile.name.length > 0 ? profile.name : '<未命名方案>'
+}
+
 export function stageName(profile: ProfileInfo, sid: StageId) {
     const stage = profile.stages.find(x => x.id === sid)
-    return stage?.name ?? '<未命名步骤>'
+    return stage && stage.name.length > 0 ? stage.name : '<未命名步骤>'
 }

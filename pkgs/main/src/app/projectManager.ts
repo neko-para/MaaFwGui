@@ -1,4 +1,4 @@
-import { Interface, ProjectId, ProjectInfo } from '@mfg/types'
+import { Interface, ProfileId, ProjectId, ProjectInfo, StageId } from '@mfg/types'
 import axios from 'axios'
 import { dialog } from 'electron'
 import { existsSync } from 'fs'
@@ -501,7 +501,29 @@ export class MfgProjectManager {
                 return false
             }
         }
+        globalThis.main.project.queryRef = id => {
+            if (!mfgApp.config.projects) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return []
+            }
 
+            const projectIndex = mfgApp.config.projects.findIndex(x => x.id === id)
+            if (projectIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定项目')
+                return []
+            }
+
+            const result: [ProfileId, StageId][] = []
+
+            for (const profile of mfgApp.config.profiles ?? []) {
+                for (const stage of profile.stages) {
+                    if (stage.project === id) {
+                        result.push([profile.id, stage.id])
+                    }
+                }
+            }
+            return result
+        }
         globalThis.main.project.load = async id => {
             return mfgApp.config.projects?.find(x => x.id === id) ?? null
         }
