@@ -194,10 +194,6 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
 <template>
     <n-scrollbar>
         <div class="flex flex-col">
-            <span>
-                {{ dragging ?? 'no' }}
-                {{ dragOverTarget?.[0] ?? 'no' }}
-            </span>
             <div
                 v-for="(item, index) in items"
                 :key="keyOf(item)"
