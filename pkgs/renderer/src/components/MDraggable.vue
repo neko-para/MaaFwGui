@@ -205,25 +205,38 @@ function revealItem(sid: string) {
     }
 
     const targetEl = innerContainerEl.value.children[index] as HTMLDivElement
-    const offset =
-        targetEl.offsetTop + targetEl.clientHeight / 2 - containerEl.value.clientHeight / 2
-    // containerEl.value.scrollTop = offset
-    containerEl.value.scrollTo({
-        top: offset,
-        behavior: 'smooth'
-    })
-    containerEl.value.addEventListener(
-        'scrollend',
-        () => {
-            revealId.value = sid as ItemId
-            setTimeout(() => {
-                revealId.value = null
-            }, 1000)
-        },
-        {
-            once: true
-        }
-    )
+    let offset = targetEl.offsetTop + targetEl.clientHeight / 2 - containerEl.value.clientHeight / 2
+
+    if (offset < 0) {
+        offset = 0
+    }
+    if (offset > containerEl.value.scrollHeight - containerEl.value.clientHeight) {
+        offset = containerEl.value.scrollHeight - containerEl.value.clientHeight
+    }
+
+    if (offset !== containerEl.value.scrollTop) {
+        containerEl.value.scrollTo({
+            top: offset,
+            behavior: 'smooth'
+        })
+        containerEl.value.addEventListener(
+            'scrollend',
+            () => {
+                revealId.value = sid as ItemId
+                setTimeout(() => {
+                    revealId.value = null
+                }, 1000)
+            },
+            {
+                once: true
+            }
+        )
+    } else {
+        revealId.value = sid as ItemId
+        setTimeout(() => {
+            revealId.value = null
+        }, 1000)
+    }
 }
 
 onMounted(() => {

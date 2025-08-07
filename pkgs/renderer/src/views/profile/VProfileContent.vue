@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { StageId } from '@mfg/types'
+import type { ProfileInfo, StageId } from '@mfg/types'
 import { NButton, NInput, NScrollbar } from 'naive-ui'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
 import MDraggable from '@/components/MDraggable.vue'
 import MLogPanel from '@/components/MLogPanel.vue'
 import MStage from '@/components/MStage.vue'
 import MStageLaunch from '@/components/MStageLaunch.vue'
-import { launchStatus, useLaunch } from '@/states/launch'
+import { useLaunch } from '@/states/launch'
 import {
     requestDelLaunch,
     requestNewLaunch,
@@ -18,6 +18,9 @@ import {
     syncProfile,
     useProfile
 } from '@/states/profile'
+import type { ComponentExposed } from '@/types'
+
+import { ProfileRevealStage } from '.'
 
 const { activeProfileInfo, profileId } = useProfile()
 
@@ -30,10 +33,25 @@ async function updateName(name: string) {
     await syncProfile()
 }
 
+async function newStage() {
+    const id = await requestNewStage(profileId.value!)
+    if (id) {
+        draggableEl.value?.revealItem(id)
+    }
+}
+
 async function moveStage(from: string, to: string, before: boolean) {
     await window.main.stage.move(profileId.value!, from as StageId, to as StageId, before)
     await syncProfile()
 }
+
+const draggableEl = ref<ComponentExposed<typeof MDraggable<ProfileInfo>> | null>(null)
+
+onMounted(() => {
+    ProfileRevealStage.value = stage => {
+        draggableEl.value?.revealItem(stage)
+    }
+})
 </script>
 
 <template>
@@ -85,16 +103,13 @@ async function moveStage(from: string, to: string, before: boolean) {
             <div class="flex items-center gap-2">
                 <span class="text-xl"> 步骤列表 </span>
                 <div class="flex-1"></div>
-                <m-button
-                    :action="() => requestNewStage(profileId!)"
-                    :disabled="!!activeLaunchStatus"
-                    use-loading
-                >
+                <m-button :action="newStage" :disabled="!!activeLaunchStatus" use-loading>
                     新建步骤
                 </m-button>
             </div>
             <m-draggable
                 v-if="!activeLaunchStatus"
+                ref="draggableEl"
                 :comp="MStage"
                 :items="activeProfileInfo.stages"
                 key-prop="id"

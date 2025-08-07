@@ -24,8 +24,9 @@ export async function syncProfile() {
 }
 
 export async function requestNewStage(pid: ProfileId) {
-    await window.main.stage.new(pid)
+    const id = await window.main.stage.new(pid)
     await syncProfile()
+    return id
 }
 
 export async function requestDelStage(pid: ProfileId, sid: StageId) {
@@ -39,8 +40,9 @@ export async function requestDupStage(pid: ProfileId, sid: StageId) {
 }
 
 export async function requestNewTask(pid: ProfileId, sid: StageId) {
-    await window.main.task.new(pid, sid)
+    const id = await window.main.task.new(pid, sid)
     await syncProfile()
+    return id
 }
 
 export async function requestDelTask(pid: ProfileId, sid: StageId, tid: TaskId) {

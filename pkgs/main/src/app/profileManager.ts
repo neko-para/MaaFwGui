@@ -95,13 +95,16 @@ export class MfgProfileManager {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
                 globalThis.renderer.utils.showToast('error', '未找到指定方案')
-                return
+                return null
             }
-            profile.stages.push({
+
+            const stage: StageInfo = {
                 id: generateId(),
                 name: ''
-            })
+            }
+            profile.stages.push(stage)
             await mfgApp.saveConfig()
+            return stage.id
         }
         globalThis.main.stage.del = async (id, sid) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
@@ -174,12 +177,12 @@ export class MfgProfileManager {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)
             if (!profile) {
                 globalThis.renderer.utils.showToast('error', '未找到指定方案')
-                return
+                return null
             }
             const stage = profile.stages.find(s => s.id === sid)
             if (!stage) {
                 globalThis.renderer.utils.showToast('error', '未找到指定步骤')
-                return
+                return null
             }
             stage.tasks = stage.tasks ?? []
 
@@ -188,6 +191,7 @@ export class MfgProfileManager {
             }
             stage.tasks.push(task)
             await mfgApp.saveConfig()
+            return task.id
         }
         globalThis.main.task.del = async (id, sid, tid) => {
             const profile = mfgApp.config.profiles?.find(p => p.id === id)

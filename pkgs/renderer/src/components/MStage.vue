@@ -15,6 +15,7 @@ const router = useRouter()
 
 const props = defineProps<{
     id: StageId
+    reveal: boolean
 }>()
 
 const { activeProfileInfo, profileId } = useProfile()
@@ -62,6 +63,7 @@ async function selectProject(project: ProjectId) {
         closable
         @close="requestDelStage(profileId, stageMeta.id)"
         size="small"
+        :header-class="reveal ? 'card-blink-title' : ''"
     >
         <template #header-extra>
             <div class="flex items-center gap-2">

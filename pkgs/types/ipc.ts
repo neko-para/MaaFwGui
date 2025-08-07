@@ -31,13 +31,13 @@ export type MainService = {
     'profile.dup': (id: ProfileId) => void
     'profile.update': (id: ProfileId, cfg: Partial<ProfileInfo>) => void
 
-    'stage.new': (id: ProfileId) => void
+    'stage.new': (id: ProfileId) => StageId | null
     'stage.del': (id: ProfileId, sid: StageId) => void
     'stage.dup': (id: ProfileId, sid: StageId) => void
     'stage.update': (id: ProfileId, sid: StageId, cfg: Partial<StageInfo>) => void
     'stage.move': (id: ProfileId, sid: StageId, sidTgt: StageId, before: boolean) => void
 
-    'task.new': (id: ProfileId, sid: StageId) => void
+    'task.new': (id: ProfileId, sid: StageId) => TaskId | null
     'task.del': (id: ProfileId, sid: StageId, tid: TaskId) => void
     'task.dup': (id: ProfileId, sid: StageId, tid: TaskId) => void
     'task.update': (id: ProfileId, sid: StageId, tid: TaskId, cfg: Partial<TaskInfo>) => void

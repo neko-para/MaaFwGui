@@ -6,16 +6,18 @@ import MButton from '@/components/MButton.vue'
 import MDraggable from '@/components/MDraggable.vue'
 import MTask from '@/components/MTask.vue'
 import { requestNewTask, syncProfile, useProfile } from '@/states/profile'
+import type { ComponentExposed } from '@/types'
 
 import { StageRevealTask } from '.'
 
-export type ComponentExposed<T> = T extends new (...args: any) => infer E
-    ? E
-    : T extends (props: any, ctx: any, expose: (exposed: infer E) => any, ...args: any) => any
-      ? NonNullable<E>
-      : {}
-
 const { profileId, stageId, activeStageInfo } = useProfile()
+
+async function newTask() {
+    const id = await requestNewTask(profileId.value!, stageId.value!)
+    if (id) {
+        draggableEl.value?.revealItem(id)
+    }
+}
 
 async function moveTask(from: string, to: string, before: boolean) {
     await window.main.task.move(
@@ -42,9 +44,7 @@ onMounted(() => {
         <div class="flex gap-2">
             <span class="text-xl"> 任务列表 </span>
             <div class="flex-1"></div>
-            <m-button :action="() => requestNewTask(profileId!, stageId!)" use-loading>
-                新建
-            </m-button>
+            <m-button :action="newTask" use-loading> 新建 </m-button>
         </div>
 
         <m-draggable
