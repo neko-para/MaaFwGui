@@ -11,6 +11,7 @@ import MButton from './MButton.vue'
 
 defineProps<{
     item: TaskInfo
+    reveal: boolean
 }>()
 
 const { profileId, stageId, activeStageInfo } = useProfile()
@@ -71,6 +72,7 @@ async function selectOption(
         closable
         @close="requestDelTask(profileId!, stageId!, item.id)"
         size="small"
+        :header-class="reveal ? 'card-blink-title' : ''"
     >
         <template #header-extra>
             <div class="flex items-center gap-2">

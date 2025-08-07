@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import type { TaskId } from '@mfg/types'
+import type { StageInfo, TaskId } from '@mfg/types'
+import { onMounted, ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
 import MDraggable from '@/components/MDraggable.vue'
 import MTask from '@/components/MTask.vue'
 import { requestNewTask, syncProfile, useProfile } from '@/states/profile'
+
+import { StageRevealTask } from '.'
+
+export type ComponentExposed<T> = T extends new (...args: any) => infer E
+    ? E
+    : T extends (props: any, ctx: any, expose: (exposed: infer E) => any, ...args: any) => any
+      ? NonNullable<E>
+      : {}
 
 const { profileId, stageId, activeStageInfo } = useProfile()
 
@@ -18,6 +27,14 @@ async function moveTask(from: string, to: string, before: boolean) {
     )
     await syncProfile()
 }
+
+const draggableEl = ref<ComponentExposed<typeof MDraggable<StageInfo>> | null>(null)
+
+onMounted(() => {
+    StageRevealTask.value = task => {
+        draggableEl.value?.revealItem(task)
+    }
+})
 </script>
 
 <template>
@@ -31,6 +48,7 @@ async function moveTask(from: string, to: string, before: boolean) {
         </div>
 
         <m-draggable
+            ref="draggableEl"
             :comp="MTask"
             :items="activeStageInfo?.tasks ?? []"
             key-prop="id"

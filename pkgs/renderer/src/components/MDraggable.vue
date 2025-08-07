@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="Item">
 import { NScrollbar } from 'naive-ui'
-import { type Component, computed, ref } from 'vue'
+import { type Component, computed, onMounted, ref } from 'vue'
 
 const props = defineProps<{
     comp: Component
@@ -189,11 +189,53 @@ function drop(sid: ItemId, ev: DragEvent) {
 function dragEnd(sid: ItemId, ev: DragEvent) {
     dragging.value = null
 }
+
+const revealId = ref<ItemId | null>(null)
+const innerContainerEl = ref<HTMLDivElement | null>(null)
+const containerEl = ref<HTMLElement | null>(null)
+
+function revealItem(sid: string) {
+    if (!innerContainerEl.value || !containerEl.value) {
+        return false
+    }
+
+    const index = props.items.findIndex(item => keyOf(item) === sid)
+    if (index === -1) {
+        return false
+    }
+
+    const targetEl = innerContainerEl.value.children[index] as HTMLDivElement
+    const offset =
+        targetEl.offsetTop + targetEl.clientHeight / 2 - containerEl.value.clientHeight / 2
+    // containerEl.value.scrollTop = offset
+    containerEl.value.scrollTo({
+        top: offset,
+        behavior: 'smooth'
+    })
+    containerEl.value.addEventListener(
+        'scrollend',
+        () => {
+            revealId.value = sid as ItemId
+            setTimeout(() => {
+                revealId.value = null
+            }, 1000)
+        },
+        {
+            once: true
+        }
+    )
+}
+
+onMounted(() => {
+    containerEl.value = innerContainerEl.value?.parentElement?.parentElement ?? null
+})
+
+defineExpose({ revealItem })
 </script>
 
 <template>
     <n-scrollbar>
-        <div class="flex flex-col">
+        <div ref="innerContainerEl" class="flex flex-col">
             <div
                 v-for="(item, index) in items"
                 :key="keyOf(item)"
@@ -212,6 +254,7 @@ function dragEnd(sid: ItemId, ev: DragEvent) {
                     :id="keyOf(item)"
                     :item="item"
                     :index="index"
+                    :reveal="revealId === keyOf(item)"
                     :class="{
                         'pointer-events-none': !!dragging
                     }"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { AdbDeviceId, ProjectInfo, StageInfo } from '@mfg/types'
-import { NPopover, NPopselect, NScrollbar, NSelect } from 'naive-ui'
+import type { AdbDeviceId, ProjectInfo, StageId, StageInfo, TaskId } from '@mfg/types'
+import { NPopselect, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -9,6 +9,7 @@ import MButton from '@/components/MButton.vue'
 import { deviceInfo } from '@/states/device'
 import { syncProfile, useProfile } from '@/states/profile'
 import { useInterface } from '@/states/project'
+import { StageRevealTask } from '@/views/profile/stage'
 
 const props = defineProps<{
     stage: StageInfo
@@ -78,13 +79,24 @@ async function selectDevice(deviceId: AdbDeviceId) {
 }
 
 const tasksOptions = computed(() => {
-    return props.stage.tasks?.map(task => {
-        return {
-            value: task.id,
-            label: task.task ?? '<未选择任务>'
-        } satisfies SelectMixedOption
-    })
+    return (
+        props.stage.tasks?.map(task => {
+            return {
+                value: task.id,
+                label: task.task ?? '<未选择任务>'
+            } satisfies SelectMixedOption
+        }) ?? []
+    )
 })
+
+function revealTask(task: TaskId) {
+    router.push({
+        path: `/profile/${profileId.value}/stage/${props.stage.id}`
+    })
+    setTimeout(() => {
+        StageRevealTask.value(task)
+    }, 1)
+}
 </script>
 
 <template>
@@ -133,14 +145,7 @@ const tasksOptions = computed(() => {
             v-if="stage.tasks && stage.tasks.length > 0"
             trigger="hover"
             :options="tasksOptions"
-            @update:value="
-                task => {
-                    router.push({
-                        // TODO: 切换过去之后看怎么自动滚动到指定任务上
-                        path: `/profile/${profileId}/stage/${stage.id}`
-                    })
-                }
-            "
+            @update:value="revealTask"
             scrollable
         >
             <span> 已配置{{ stage.tasks.length }}个任务 </span>

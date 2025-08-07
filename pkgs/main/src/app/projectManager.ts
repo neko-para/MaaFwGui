@@ -53,6 +53,8 @@ function guessExtension(resp: axios.AxiosResponse<any, any>) {
 }
 
 export class MfgProjectManager {
+    interfaceCache: Record<ProjectId, Interface> = {}
+
     async init() {
         globalThis.main.project.query = async () => {
             return mfgApp.config.projects ?? []
@@ -636,6 +638,10 @@ export class MfgProjectManager {
     }
 
     async loadInterface(pid: ProjectId) {
+        if (this.interfaceCache[pid]) {
+            return this.interfaceCache[pid]
+        }
+
         const info = mfgApp.config.projects?.find(x => x.id === pid)
         if (!info) {
             globalThis.renderer.utils.showToast('error', '未找到指定项目')
@@ -643,6 +649,7 @@ export class MfgProjectManager {
         }
         try {
             const content = JSON.parse(await fs.readFile(info.path, 'utf8')) as Interface
+            this.interfaceCache[pid] = content
             return content
         } catch {
             globalThis.renderer.utils.showToast('error', '加载项目失败')

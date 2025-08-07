@@ -68,3 +68,17 @@ body {
     grid-template-columns: max-content 1fr;
     grid-auto-rows: 1fr;
 }
+
+.blink-text {
+    animation: blinker 0.5s linear infinite;
+}
+
+.card-blink-title > .n-card-header__main {
+    animation: blinker 0.5s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
