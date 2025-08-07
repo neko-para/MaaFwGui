@@ -29,6 +29,16 @@ export class MfgDeviceManager {
             mfgApp.config.devices.splice(devIndex, 1)
             await mfgApp.saveConfig()
         }
+        globalThis.main.device.update = async (id, cfg) => {
+            const dev = mfgApp.config.devices?.find(x => x.id === id)
+            if (!dev) {
+                globalThis.renderer.utils.showToast('error', '未找到指定设备')
+                return
+            }
+
+            Object.assign(dev, cfg)
+            await mfgApp.saveConfig()
+        }
         globalThis.main.device.scan = async () => {
             mfgApp.config.devices = mfgApp.config.devices ?? []
 

@@ -65,7 +65,7 @@ const deviceOptions = computed(() => {
     return deviceInfo.value.map(dev => {
         return {
             value: dev.id,
-            label: `${dev.name} - ${dev.address}`
+            label: dev.name !== '' ? `${dev.name} - ${dev.address}` : dev.address
         } satisfies SelectMixedOption
     })
 })
@@ -110,7 +110,7 @@ async function selectDevice(deviceId: AdbDeviceId) {
             <m-button
                 @action="
                     router.push({
-                        path: `/device`
+                        path: stage.adb ? `/device/${stage.adb}` : '/device'
                     })
                 "
             >

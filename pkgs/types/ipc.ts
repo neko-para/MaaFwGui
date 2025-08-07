@@ -66,6 +66,7 @@ export type MainService = {
 
     'device.query': () => AdbDevice[]
     'device.del': (did: AdbDeviceId) => void
+    'device.update': (did: AdbDeviceId, cfg: Partial<AdbDevice>) => void
     'device.scan': () => AdbDevice[]
 
     'github.hasToken': () => boolean

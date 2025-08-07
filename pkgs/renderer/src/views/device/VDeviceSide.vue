@@ -27,7 +27,7 @@ const router = useRouter()
 
         <template #itemEntry="{ item: dev }">
             <div class="flex flex-col items-start">
-                <span class="text-lg"> {{ dev.name }} </span>
+                <span class="text-lg"> {{ dev.name === '' ? '<未命名设备>' : dev.name }} </span>
                 <span> {{ dev.address }} </span>
             </div>
         </template>
