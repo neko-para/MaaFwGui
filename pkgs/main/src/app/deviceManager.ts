@@ -1,5 +1,5 @@
 import * as maa from '@maaxyz/maa-node'
-import { AdbDevice, AdbDeviceId } from '@mfg/types'
+import { AdbDevice, AdbDeviceId, ProfileId, StageId } from '@mfg/types'
 
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
@@ -38,6 +38,26 @@ export class MfgDeviceManager {
 
             Object.assign(dev, cfg)
             await mfgApp.saveConfig()
+        }
+        globalThis.main.device.queryRef = async id => {
+            mfgApp.config.devices = mfgApp.config.devices ?? []
+            const devIndex = mfgApp.config.devices.findIndex(x => x.id === id)
+            if (devIndex === -1) {
+                globalThis.renderer.utils.showToast('error', '未找到指定设备')
+                return []
+            }
+
+            const result: [ProfileId, StageId][] = []
+
+            for (const profile of mfgApp.config.profiles ?? []) {
+                for (const stage of profile.stages) {
+                    if (stage.adb === id) {
+                        result.push([profile.id, stage.id])
+                    }
+                }
+            }
+
+            return result
         }
         globalThis.main.device.scan = async () => {
             mfgApp.config.devices = mfgApp.config.devices ?? []
