@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdbDeviceId, ProjectInfo, StageInfo } from '@mfg/types'
-import { NSelect } from 'naive-ui'
+import { NPopover, NPopselect, NScrollbar, NSelect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -76,6 +76,15 @@ async function selectDevice(deviceId: AdbDeviceId) {
     })
     await syncProfile()
 }
+
+const tasksOptions = computed(() => {
+    return props.stage.tasks?.map(task => {
+        return {
+            value: task.id,
+            label: task.task ?? '<未选择任务>'
+        } satisfies SelectMixedOption
+    })
+})
 </script>
 
 <template>
@@ -120,7 +129,24 @@ async function selectDevice(deviceId: AdbDeviceId) {
     </template>
     <span> 任务 </span>
     <div class="flex items-center gap-2">
-        <span> 已配置{{ stage.tasks?.length ?? 0 }}个任务 </span>
+        <n-popselect
+            v-if="stage.tasks && stage.tasks.length > 0"
+            trigger="hover"
+            :options="tasksOptions"
+            @update:value="
+                task => {
+                    router.push({
+                        // TODO: 切换过去之后看怎么自动滚动到指定任务上
+                        path: `/profile/${profileId}/stage/${stage.id}`
+                    })
+                }
+            "
+            scrollable
+        >
+            <span> 已配置{{ stage.tasks.length }}个任务 </span>
+        </n-popselect>
+        <span v-else> 未配置任务 </span>
+
         <div class="flex-1"></div>
         <m-button
             @action="

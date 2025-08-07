@@ -24,7 +24,10 @@ const { profileId, stageId, activeProfileInfo } = useProfile()
     >
         <template #itemEntry="{ item: stage }">
             <span class="text-xl">
-                {{ stage.name + (stage.id === stageId ? ' *' : '') }}
+                {{
+                    (stage.name === '' ? '<未命名步骤>' : stage.name) +
+                    (stage.id === stageId ? ' *' : '')
+                }}
             </span>
         </template>
     </l-generic-side>
