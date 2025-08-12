@@ -15,6 +15,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: write
+
 jobs:
     meta:
         uses: ./.github/workflows/meta.yml
