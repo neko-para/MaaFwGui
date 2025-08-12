@@ -70,6 +70,11 @@ jobs:
         - uses: actions/download-artifact@v4
           with:
             path: assets
+            merge-multiple: true
+
+        - name: Print assets
+          run: |
+            find assets
 
         - uses: softprops/action-gh-release@v2
           with:
