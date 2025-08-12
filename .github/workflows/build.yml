@@ -16,6 +16,9 @@ defaults:
     shell: bash
 
 jobs:
+    meta:
+        uses: ./.github/workflows/meta.yml
+
     build:
         strategy:
             matrix:
@@ -55,3 +58,18 @@ jobs:
               with:
                   name: MFG-${{ matrix.os }}-${{ matrix.arch }}
                   path: 'output'
+
+    release:
+      if: startsWith(github.ref, 'refs/tags/v')
+      runs-on: ubuntu-latest
+      needs: [build]
+      steps:
+        - uses: actions/download-artifact@v4
+          with:
+            path: assets
+
+        - uses: softprops/action-gh-release@v2
+          with:
+              files: assets/*.tar.gz
+              tag_name: ${{ needs.meta.outputs.tag }}
+              prerelease: ${{ needs.meta.outputs.is_pre_release == 'true' }}
