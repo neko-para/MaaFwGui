@@ -1,3 +1,5 @@
+import type { MaaLoaderOption, MaaLoaderRegistry } from '@mfg/maa'
+
 import type { GlobalConfig } from './config'
 import type { AdbDevice, AdbDeviceId } from './device'
 import type { LaunchActiveOutput, LaunchId, LaunchStatus } from './launch'
@@ -19,11 +21,17 @@ export type MainService = {
     // 'utils.updateConfig': (cfg: Partial<GlobalConfig>) => void
 
     'misc.MaaFwGuiVersion': () => string
-    'misc.MaaFwVersion': () => string
     'misc.toggleDebugMode': () => void
     'misc.revealData': () => void
     'misc.revealPath': (path: string) => boolean
     'misc.openDevTools': () => void
+
+    'maa.init': () => boolean
+    'maa.version': () => string | null
+    'maa.query': () => MaaLoaderOption
+    'maa.setVersion': (ver: string) => void
+    'maa.setRegistry': (reg: MaaLoaderRegistry) => void
+    'maa.allVersion': () => { version: string; downloaded: boolean }[]
 
     'profile.query': () => ProfileInfo[]
     'profile.new': () => void
@@ -81,6 +89,8 @@ export type MainService = {
 }
 
 export type RendererService = {
+    'maa.versionChanged': (version: string) => void
+
     'launch.updateIndex': (index: Record<ProfileId, LaunchId>) => void
     'launch.updateStatus': (lid: LaunchId, status?: LaunchStatus) => void
     'launch.addOutput': (

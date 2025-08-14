@@ -1,12 +1,55 @@
 <script setup lang="ts">
+import type { MaaLoaderOption, MaaLoaderRegistry } from '@mfg/maa'
 import type { GlobalConfig } from '@mfg/types'
-import { NInput } from 'naive-ui'
+import { NInput, NPopselect } from 'naive-ui'
+import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
+import semVerCompare from 'semver/functions/compare'
 import { computed, onMounted, ref } from 'vue'
 
 import MButton from '@/components/MButton.vue'
 import { config, syncConfig } from '@/states/config'
+import { maaVersion } from '@/states/maa'
 
-const fwVer = ref('')
+const allFwVers = ref<{ version: string; downloaded: boolean }[]>([])
+const fwLoaderOption = ref<MaaLoaderOption | null>(null)
+const fwVersOptions = computed(() => {
+    return allFwVers.value.map(ver => {
+        let label = ver.version
+        if (ver.downloaded) {
+            label += ' 已下载'
+        }
+        return {
+            value: ver.version,
+            label
+        } satisfies SelectMixedOption
+    })
+})
+const fwRegsOptions = computed(() => {
+    return ['cnpm', 'npm'].map(reg => {
+        return {
+            value: reg,
+            label: reg
+        } satisfies SelectMixedOption
+    })
+})
+
+async function selectFwVer(ver: string) {
+    await window.main.maa.setVersion(ver)
+    fwLoaderOption.value = await window.main.maa.query()
+}
+
+async function selectFwReg(reg: MaaLoaderRegistry) {
+    await window.main.maa.setRegistry(reg)
+    fwLoaderOption.value = await window.main.maa.query()
+    await syncFwVersions()
+}
+
+async function syncFwVersions() {
+    allFwVers.value = (await window.main.maa.allVersion()).sort((a, b) => {
+        return -semVerCompare(a.version, b.version)
+    })
+}
+
 const guiVer = ref('')
 
 const fakeToken = '********'
@@ -70,7 +113,7 @@ async function openDevTools() {
 }
 
 onMounted(async () => {
-    fwVer.value = await window.main.misc.MaaFwVersion()
+    fwLoaderOption.value = await window.main.maa.query()
     guiVer.value = await window.main.misc.MaaFwGuiVersion()
     await syncConfig()
 
@@ -80,6 +123,8 @@ onMounted(async () => {
     if (await window.main.mirrorc.hasToken()) {
         mirrorcToken.value = fakeToken
     }
+
+    await syncFwVersions()
 })
 </script>
 
@@ -140,7 +185,27 @@ onMounted(async () => {
         </div>
         <div class="form-grid items-center gap-2">
             <span> MaaFramework </span>
-            <span> {{ fwVer }} </span>
+            <div class="flex items-center justify-start gap-2">
+                <span> {{ maaVersion ?? '未加载' }} </span>
+                <template v-if="fwLoaderOption">
+                    <span v-if="!maaVersion"> 正在安装 {{ fwLoaderOption.version }} </span>
+                    <template v-else>
+                        <n-popselect
+                            :options="fwVersOptions"
+                            @update:value="selectFwVer"
+                            scrollable
+                        >
+                            <m-button> 安装其它版本 </m-button>
+                        </n-popselect>
+                        <span v-if="fwLoaderOption.version !== maaVersion">
+                            重启后使用 {{ fwLoaderOption.version }}
+                        </span>
+                        <n-popselect :options="fwRegsOptions" @update:value="selectFwReg">
+                            <m-button> 下载源 {{ fwLoaderOption.registry }} </m-button>
+                        </n-popselect>
+                    </template>
+                </template>
+            </div>
             <span> MaaFrameworkGui </span>
             <span> {{ guiVer }} </span>
         </div>

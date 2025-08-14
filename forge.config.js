@@ -9,12 +9,6 @@ module.exports = {
             if (path.length === 0) {
                 return false
             }
-            if (path === '/node_modules') {
-                return false
-            }
-            if (/\/node_modules\/@maaxyz/.test(path)) {
-                return false
-            }
             if (/\/dist/.test(path)) {
                 return false
             }

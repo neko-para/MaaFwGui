@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import MButton from '@/components/MButton.vue'
 import LGenericSide from '@/layouts/LGenericSide.vue'
 import { deviceInfo, requestDelDevice, requestScanDevices } from '@/states/device'
+import { maaVersion } from '@/states/maa'
 
 const router = useRouter()
 </script>
@@ -22,7 +23,9 @@ const router = useRouter()
         "
     >
         <template #actions>
-            <m-button :action="requestScanDevices" use-loading> 扫描 </m-button>
+            <m-button :action="requestScanDevices" use-loading :disabled="!maaVersion">
+                扫描
+            </m-button>
         </template>
 
         <template #itemEntry="{ item: dev }">

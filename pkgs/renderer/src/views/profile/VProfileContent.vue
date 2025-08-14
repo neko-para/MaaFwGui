@@ -9,6 +9,7 @@ import MLogPanel from '@/components/MLogPanel.vue'
 import MStage from '@/components/MStage.vue'
 import MStageLaunch from '@/components/MStageLaunch.vue'
 import { useLaunch } from '@/states/launch'
+import { maaVersion } from '@/states/maa'
 import {
     requestDelLaunch,
     requestNewLaunch,
@@ -67,6 +68,7 @@ onMounted(() => {
                     @click="requestNewLaunch(profileId)"
                     type="primary"
                     size="small"
+                    :disabled="!maaVersion"
                 >
                     启动
                 </n-button>

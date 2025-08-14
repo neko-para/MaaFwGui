@@ -1,4 +1,4 @@
-import * as maa from '@maaxyz/maa-node'
+import { maa } from '@mfg/maa'
 import { AdbDevice, AdbDeviceId, ProfileId, StageId } from '@mfg/types'
 
 import { generateId } from '../utils/uuid'
@@ -60,6 +60,11 @@ export class MfgDeviceManager {
             return result
         }
         globalThis.main.device.scan = async () => {
+            if (!maa) {
+                globalThis.renderer.utils.showToast('error', '未加载MaaFramework')
+                return []
+            }
+
             mfgApp.config.devices = mfgApp.config.devices ?? []
 
             const devs = await maa.AdbController.find()

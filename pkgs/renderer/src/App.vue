@@ -27,6 +27,8 @@ onMounted(async () => {
     syncProjects()
     syncDevices()
     syncLaunch()
+
+    window.main.maa.init()
 })
 </script>
 

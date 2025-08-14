@@ -1,4 +1,3 @@
-import * as maa from '@maaxyz/maa-node'
 import { SystemInfo } from '@mfg/types'
 import { app, shell } from 'electron'
 import { existsSync, statSync } from 'fs'
@@ -10,6 +9,7 @@ import { window } from '../window'
 import { MfgDeviceManager } from './deviceManager'
 import { MfgGithubManager } from './githubManager'
 import { MfgLaunchManager } from './launchManager'
+import { MfgMaaManager } from './maaManager'
 import { MfgMirrorcManager } from './mirrorcManager'
 import { MfgProfileManager } from './profileManager'
 import { MfgProjectManager } from './projectManager'
@@ -19,6 +19,7 @@ class MfgApp {
     root: string
 
     config: AppConfig
+    maaManager: MfgMaaManager
     profileManager: MfgProfileManager
     projectManager: MfgProjectManager
     deviceManager: MfgDeviceManager
@@ -30,6 +31,7 @@ class MfgApp {
         this.root = root
 
         this.config = {}
+        this.maaManager = new MfgMaaManager()
         this.profileManager = new MfgProfileManager()
         this.projectManager = new MfgProjectManager()
         this.deviceManager = new MfgDeviceManager()
@@ -44,11 +46,10 @@ class MfgApp {
 
         await this.loadConfig()
 
-        maa.Global.log_dir = this.root
-
         this.initUtils()
         this.initMiscs()
 
+        await this.maaManager.init()
         await this.profileManager.init()
         await this.projectManager.init()
         await this.deviceManager.init()
@@ -74,7 +75,6 @@ class MfgApp {
     }
 
     initMiscs() {
-        globalThis.main.misc.MaaFwVersion = () => maa.Global.version
         globalThis.main.misc.MaaFwGuiVersion = () => pkg.version
 
         globalThis.main.misc.toggleDebugMode = async () => {

@@ -45,7 +45,7 @@ onMounted(() => {
         }
     })
     unbind2.value = window.renderer.utils.endProgress(id => {
-        progressInfo[id].noti?.destroy()
+        progressInfo[id]?.noti?.destroy()
         delete progressInfo[id]
     })
 })

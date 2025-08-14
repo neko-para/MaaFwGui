@@ -1,4 +1,4 @@
-import * as maa from '@maaxyz/maa-node'
+import { maa } from '@mfg/maa'
 import {
     Interface,
     LaunchId,
@@ -61,6 +61,11 @@ export class MfgLaunchManager {
 
     async init() {
         main.launch.new = async id => {
+            if (!maa) {
+                globalThis.renderer.utils.showToast('error', '未加载MaaFramework')
+                return
+            }
+
             const profile = mfgApp.config.profiles?.find(x => x.id === id)
             if (!profile) {
                 globalThis.renderer.utils.showToast('error', '未找到指定方案')

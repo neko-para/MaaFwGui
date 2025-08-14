@@ -7,6 +7,7 @@ import '@/base.css'
 import '@/ipc'
 import router from '@/plugins/router'
 import { initLaunchHooks } from '@/states/launch'
+import { initMaaHooks } from '@/states/maa'
 
 const meta = document.createElement('meta')
 meta.name = 'naive-ui-style'
@@ -14,4 +15,5 @@ document.head.appendChild(meta)
 
 createApp(App).use(router).mount('#app')
 
+initMaaHooks()
 initLaunchHooks()

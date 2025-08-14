@@ -7,15 +7,16 @@
         "build": "node scripts/build.mjs",
         "package": "electron-forge package"
     },
-    "dependencies": {
-        "@maaxyz/maa-node": "^4.4.0"
-    },
     "devDependencies": {
         "@electron-forge/cli": "^7.8.1",
+        "@maaxyz/maa-node": "^4.4.1",
         "@tailwindcss/vite": "^4.1.11",
         "@trivago/prettier-plugin-sort-imports": "^5.2.2",
         "@tsconfig/node20": "^20.1.6",
         "@types/node": "^24.0.15",
+        "@types/pacote": "^11.1.8",
+        "@types/proper-lockfile": "^4.1.4",
+        "@types/semver": "^7.7.0",
         "@types/unzipper": "^0.10.11",
         "@types/uuid": "^10.0.0",
         "@vitejs/plugin-vue": "^6.0.0",
@@ -29,7 +30,10 @@
         "marked": "^16.1.2",
         "naive-ui": "^2.42.0",
         "octokit": "^5.0.3",
+        "pacote": "^21.0.0",
         "prettier": "^3.6.2",
+        "proper-lockfile": "^4.1.2",
+        "semver": "^7.7.2",
         "tailwindcss": "^4.1.11",
         "tar": "^7.4.3",
         "typescript": "^5.8.3",

@@ -1,7 +1,4 @@
 {
     "extends": "@tsconfig/node20",
-    "compilerOptions": {
-        "resolveJsonModule": true
-    },
     "include": ["src/**/*.ts"]
 }
