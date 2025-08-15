@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { MaaLoaderOption, MaaLoaderRegistry } from '@mfg/maa'
-import type { GlobalConfig } from '@mfg/types'
 import { NInput, NPopselect } from 'naive-ui'
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import semVerCompare from 'semver/functions/compare'
