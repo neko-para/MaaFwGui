@@ -2,6 +2,15 @@ import esbuild from 'esbuild'
 import { build } from 'vite'
 
 await esbuild.build({
+    entryPoints: ['pkgs/runner/src/main.ts'],
+    platform: 'node',
+    bundle: true,
+    external: ['@maaxyz/maa-node', 'node-gyp/bin/node-gyp.js'],
+    outdir: './dist/runner',
+    minify: true,
+    sourcemap: true
+})
+await esbuild.build({
     entryPoints: ['pkgs/main/src/main.ts'],
     platform: 'node',
     bundle: true,

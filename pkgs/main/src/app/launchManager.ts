@@ -6,6 +6,7 @@ import {
     LaunchPrepareStatus,
     LaunchStatus,
     ProfileId,
+    RunnerMessage,
     StageInfo,
     TaskInfo
 } from '@mfg/types'
@@ -15,49 +16,10 @@ import * as path from 'path'
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
 
-type FocusNotify = {
-    start: string[]
-    succeeded: string[]
-    failed: string[]
-    toast?: string
-}
-
-function parseFocus(data: unknown): FocusNotify {
-    const result: FocusNotify = {
-        start: [],
-        succeeded: [],
-        failed: []
-    }
-    if (typeof data !== 'object' || data === null) {
-        return result
-    }
-    const check = (v: unknown): v is string | string[] => {
-        return (
-            typeof v === 'string' ||
-            (Array.isArray(v) && v.map(x => typeof x === 'string').reduce((a, b) => a && b, true))
-        )
-    }
-    const wrap = (v: string | string[]) => {
-        return typeof v === 'string' ? [v] : v
-    }
-    if ('start' in data && check(data.start)) {
-        result.start = wrap(data.start)
-    }
-    if ('succeeded' in data && check(data.succeeded)) {
-        result.succeeded = wrap(data.succeeded)
-    }
-    if ('failed' in data && check(data.failed)) {
-        result.failed = wrap(data.failed)
-    }
-    if ('toast' in data && typeof data.toast === 'string') {
-        result.toast = data.toast
-    }
-    return result
-}
-
 export class MfgLaunchManager {
     launchIndex: Record<ProfileId, LaunchId> = {}
     launchInfo: Record<LaunchId, LaunchInfo> = {}
+    launchRunner: Record<LaunchId, child_process.ChildProcess> = {}
 
     async init() {
         main.launch.new = async id => {
@@ -76,11 +38,6 @@ export class MfgLaunchManager {
                 return
             }
 
-            let stoppedResolve: (v: null) => void = () => {}
-            const stoppedPromise = new Promise<null>(resolve => {
-                stoppedResolve = resolve
-            })
-
             const lid = generateId<LaunchId>()
             this.launchIndex[id] = lid
             this.launchInfo[lid] = {
@@ -92,9 +49,7 @@ export class MfgLaunchManager {
                     prepares: [],
                     tasks: {}
                 },
-                instance: {
-                    stopped: [stoppedPromise, stoppedResolve]
-                }
+                instance: {}
             }
             await globalThis.renderer.launch.updateIndex(this.launchIndex)
             await globalThis.renderer.launch.updateStatus(lid, this.launchInfo[lid].status)
@@ -110,9 +65,8 @@ export class MfgLaunchManager {
             launch.status.stopped = true
             await globalThis.renderer.launch.updateStatus(id, launch.status)
 
-            launch.instance.stopped[1](null)
-
-            launch.instance.postStop = launch.instance.tasker?.post_stop().wait().done
+            // 这里其实应该通知runner去退出, 比如post_stop, 但是直接杀了也挺好
+            this.launchRunner[launch.id]?.kill('SIGKILL')
         }
         main.launch.del = async id => {
             const launch = this.launchInfo[id]
@@ -162,26 +116,19 @@ export class MfgLaunchManager {
             if (!(await this.launchStage(launch, stage))) {
                 break
             }
+
+            this.launchRunner[launch.id]?.kill('SIGKILL')
+            delete this.launchRunner[launch.id]
         }
+
+        this.launchRunner[launch.id]?.kill('SIGKILL')
+        delete this.launchRunner[launch.id]
 
         launch.status.stopped = true
         await globalThis.renderer.launch.updateStatus(lid, launch.status)
     }
 
     async launchStage(launch: LaunchInfo, stage: StageInfo) {
-        launch.status.stages[stage.id] = 'running'
-        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-        const result = await this.launchStageImpl(launch, stage)
-        launch.status.stages[stage.id] = result ? 'succeeded' : 'failed'
-        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-        await this.resetInstance(launch)
-
-        return result
-    }
-
-    async launchStageImpl(launch: LaunchInfo, stage: StageInfo) {
         if (!stage.project) {
             globalThis.renderer.utils.showToast('error', '未指定项目')
             return false
@@ -194,93 +141,6 @@ export class MfgLaunchManager {
             return false
         }
 
-        if (!(await this.prepareInstance(launch, stage, interfaceData))) {
-            return false
-        }
-
-        await globalThis.renderer.launch.setActiveOutput(launch.id, {
-            type: 'focus',
-            stage: stage.id
-        })
-        for (const task of stage.tasks ?? []) {
-            if (launch.status.stopped) {
-                return false
-            }
-
-            launch.status.tasks[task.id] = 'running'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-            const result = await this.launchTask(launch, stage, task, interfaceData)
-
-            launch.status.tasks[task.id] = result ? 'succeeded' : 'failed'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-            if (!result) {
-                return false
-            }
-        }
-
-        return true
-    }
-
-    async resetInstance(launch: LaunchInfo) {
-        // 等连接完成, 不然挂了
-        await launch.instance.postConn
-        // 必须等待由于post_stop产生的任务完成，否则其回调会和这里的destroy死锁
-        await launch.instance.postStop
-
-        launch.instance.agent?.kill()
-        launch.instance.agent = undefined
-
-        launch.instance.tasker?.destroy()
-        launch.instance.tasker = undefined
-        launch.instance.controller?.destroy()
-        launch.instance.controller = undefined
-
-        launch.instance.client?.destroy()
-        launch.instance.client = undefined
-
-        launch.instance.resource?.destroy()
-        launch.instance.resource = undefined
-    }
-
-    async prepareInstance(launch: LaunchInfo, stage: StageInfo, interfaceData: Interface) {
-        const result = await this.prepareInstanceImpl(launch, stage, interfaceData)
-        if (!result) {
-            await this.resetInstance(launch)
-        }
-        return result
-    }
-
-    async prepareInstanceImpl(launch: LaunchInfo, stage: StageInfo, interfaceData: Interface) {
-        let agentStatus: LaunchPrepareStatus | null = null
-        if (interfaceData.agent) {
-            agentStatus = {
-                stage: '连接Agent'
-            }
-        }
-        if (agentStatus) {
-            launch.status.prepares.push(agentStatus)
-        }
-
-        const connectStatus: LaunchPrepareStatus = {
-            stage: '连接设备'
-        }
-        launch.status.prepares.push(connectStatus)
-
-        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-        if (!stage.resource) {
-            globalThis.renderer.utils.showToast('error', '未指定资源')
-            return false
-        }
-
-        const resourceMeta = interfaceData.resource.find(x => x.name === stage.resource)
-        if (!resourceMeta) {
-            globalThis.renderer.utils.showToast('error', `未找到资源 ${stage.resource}`)
-            return false
-        }
-
         const proj = mfgApp.config.projects?.find(x => x.id === stage.project)
         if (!proj) {
             // 按理说不应该, 大概是用户在搞事
@@ -289,303 +149,68 @@ export class MfgLaunchManager {
         }
         const projectDir = path.dirname(proj.path)
 
-        launch.instance.resource = new maa.Resource()
-        let resPaths = resourceMeta.path
-        if (typeof resPaths === 'string') {
-            resPaths = [resPaths]
+        const env: Record<string, string> = {
+            ...process.env,
+
+            ELECTRON_RUN_AS_NODE: '1',
+
+            MFG_MAA_LOADER_OPTION: JSON.stringify(mfgApp.config.maaOption),
+            MFG_LOG_DIR: projectDir,
+
+            MFG_INTERFACE: JSON.stringify(interfaceData),
+            MFG_LAUNCH: JSON.stringify(launch),
+            MFG_STAGE: JSON.stringify(stage),
+            MFG_PROJECT_DIR: projectDir
         }
-        resPaths = resPaths.map(p => p.replaceAll('{PROJECT_DIR}', projectDir))
-
-        for (const resp of resPaths) {
-            if (!(await launch.instance.resource.post_bundle(resp).wait().succeeded)) {
-                globalThis.renderer.utils.showToast('error', '资源加载失败')
-                return false
-            }
-        }
-
-        if (agentStatus && interfaceData.agent && interfaceData.agent.child_exec) {
-            launch.status.hasAgent = true
-            agentStatus.status = 'running'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-            await globalThis.renderer.launch.setActiveOutput(launch.id, {
-                type: 'agent',
-                stage: stage.id
-            })
-
-            launch.instance.client = new maa.AgentClient()
-            const identifier = launch.instance.client.identifier ?? 'mfg-no-identifier'
-
-            try {
-                const cp = child_process.spawn(
-                    interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir),
-                    (interfaceData.agent.child_args ?? [])
-                        .map(arg => arg.replaceAll('{PROJECT_DIR}', projectDir))
-                        .concat([identifier]),
-                    {
-                        stdio: 'pipe',
-                        shell: true,
-                        cwd: projectDir,
-                        env: {
-                            MFG_AGENT: '1',
-                            MFG_AGENT_ROOT: projectDir,
-                            MFG_AGENT_RESOURCE: resPaths.join(path.delimiter),
-                            TMPDIR: process.env['TMPDIR']
-                        }
-                    }
-                )
-
-                const spawnErr = await new Promise<Error | null>(resolve => {
-                    cp.on('spawn', () => {
-                        resolve(null)
-                    })
-                    cp.on('error', err => {
-                        resolve(err)
-                    })
-                })
-                if (spawnErr) {
-                    throw spawnErr
-                }
-
-                cp.stdout.on('data', (chunk: Buffer) => {
-                    globalThis.renderer.launch.addOutput(
-                        launch.id,
-                        stage.id,
-                        'agent',
-                        chunk.toString()
-                    )
-                })
-                cp.stderr.on('data', (chunk: Buffer) => {
-                    globalThis.renderer.launch.addOutput(
-                        launch.id,
-                        stage.id,
-                        'agent',
-                        chunk.toString()
-                    )
-                })
-
-                launch.instance.agent = cp
-            } catch (err) {
-                agentStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', `启动Agent失败 ${err}`)
-                return false
-            }
-
-            launch.instance.client.timeout = 30000
-            launch.instance.client.bind_resource(launch.instance.resource)
-
-            const connected = launch.instance.client.connect().then(
-                () => true,
-                () => false
-            )
-
-            if (!(await Promise.any([connected, launch.instance.stopped[0]]))) {
-                agentStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', '连接Agent失败')
-                return false
-            } else {
-                agentStatus.status = 'succeeded'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-            }
-        }
-
-        connectStatus.status = 'running'
-        await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-        if (!stage.controller) {
-            connectStatus.status = 'failed'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-            globalThis.renderer.utils.showToast('error', '未指定控制器')
-            return false
-        }
-
-        const controllerMeta = interfaceData.controller.find(x => x.name === stage.controller)
-        if (!controllerMeta) {
-            connectStatus.status = 'failed'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-            globalThis.renderer.utils.showToast('error', `未找到控制器 ${stage.controller}`)
-            return false
-        }
-
-        if (controllerMeta.type === 'Adb') {
-            if (!stage.adb) {
-                connectStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', '未指定设备')
-                return false
-            }
-
+        if (stage.adb) {
             const dev = mfgApp.config.devices?.find(x => x.id === stage.adb)
-            if (!dev) {
-                connectStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', '未找到指定设备')
-                return false
+            if (dev) {
+                env['MFG_DEV'] = JSON.stringify(dev)
             }
-            launch.instance.controller = new maa.AdbController(
-                dev.adb_path,
-                dev.address,
-                controllerMeta.adb?.screencap ?? maa.api.AdbScreencapMethod.Default,
-                controllerMeta.adb?.input ?? maa.api.AdbInputMethod.Default,
-                JSON.stringify(controllerMeta.adb?.config ?? {})
-            )
-
-            launch.instance.postConn = launch.instance.controller.post_connection().wait().succeeded
-            if (!(await Promise.any([launch.instance.postConn, launch.instance.stopped[0]]))) {
-                connectStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', '连接失败')
-                return false
-            }
-            if (!launch.instance.controller.connected) {
-                connectStatus.status = 'failed'
-                await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-                globalThis.renderer.utils.showToast('error', '连接失败')
-                return false
-            }
-
-            connectStatus.status = 'succeeded'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-        } else {
-            connectStatus.status = 'failed'
-            await globalThis.renderer.launch.updateStatus(launch.id, launch.status)
-
-            globalThis.renderer.utils.showToast('error', '暂不支持其它类型的控制器')
-            return false
         }
 
-        launch.instance.tasker = new maa.Tasker()
-        launch.instance.tasker.chain_parsed_notify(notify => {
-            // TODO: 弹下focus, 可以抄下mfaa的协议
-            switch (notify.msg) {
-                case 'Task.Started':
+        const runner = child_process.fork(path.join(__dirname, '../runner/main.js'), {
+            execPath: process.execPath,
+            env,
+            stdio: 'inherit'
+        })
+        this.launchRunner[launch.id] = runner
+
+        runner.on('message', (msg: RunnerMessage) => {
+            switch (msg.type) {
+                case 'updateStatus':
+                    launch.status = msg.status
+                    globalThis.renderer.launch.updateStatus(launch.id, msg.status)
+                    break
+                case 'showError':
+                    globalThis.renderer.utils.showToast('error', msg.error)
+                    break
+                case 'setActiveOutput':
+                    globalThis.renderer.launch.setActiveOutput(launch.id, msg.output)
+                    break
+                case 'addOutput':
                     globalThis.renderer.launch.addOutput(
                         launch.id,
                         stage.id,
-                        'focus',
-                        `任务开始: ${launch.instance.currentTask ?? notify.entry}`
+                        msg.category,
+                        msg.output
                     )
                     break
-                case 'Task.Completed':
-                    globalThis.renderer.launch.addOutput(
-                        launch.id,
-                        stage.id,
-                        'focus',
-                        `任务完成: ${launch.instance.currentTask ?? notify.entry}`
-                    )
+                case 'showFocus':
+                    globalThis.renderer.utils.showToast('info', msg.focus)
                     break
-                case 'Task.Failed':
-                    globalThis.renderer.launch.addOutput(
-                        launch.id,
-                        stage.id,
-                        'focus',
-                        `任务失败: ${launch.instance.currentTask ?? notify.entry}`
-                    )
-                    break
-                case 'NextList.Starting': {
-                    const focus = parseFocus(notify.focus)
-                    if (focus.start.length > 0) {
-                        globalThis.renderer.launch.addOutput(
-                            launch.id,
-                            stage.id,
-                            'focus',
-                            focus.start.join('\n')
-                        )
-                    }
-                    if (focus.toast && focus.toast.length > 0) {
-                        globalThis.renderer.utils.showToast('info', focus.toast)
-                    }
-                    break
-                }
-                case 'NextList.Succeeded': {
-                    const focus = parseFocus(notify.focus)
-                    if (focus.start.length > 0) {
-                        globalThis.renderer.launch.addOutput(
-                            launch.id,
-                            stage.id,
-                            'focus',
-                            focus.succeeded.join('\n')
-                        )
-                    }
-                    break
-                }
-                case 'NextList.Failed': {
-                    const focus = parseFocus(notify.focus)
-                    if (focus.start.length > 0) {
-                        globalThis.renderer.launch.addOutput(
-                            launch.id,
-                            stage.id,
-                            'focus',
-                            focus.failed.join('\n')
-                        )
-                    }
-                    break
-                }
             }
         })
-        launch.instance.tasker.bind(launch.instance.controller)
-        launch.instance.tasker.bind(launch.instance.resource)
 
-        if (!launch.instance.tasker.inited) {
-            globalThis.renderer.utils.showToast('error', '初始化失败')
-            return false
-        }
+        let resolve: (v: boolean) => void
+        const result = new Promise<boolean>(res => {
+            resolve = res
+        })
 
-        return true
-    }
+        runner.on('close', code => {
+            resolve(code === 0)
+        })
 
-    async launchTask(
-        launch: LaunchInfo,
-        stage: StageInfo,
-        task: TaskInfo,
-        interfaceData: Interface
-    ) {
-        if (!task.task) {
-            globalThis.renderer.utils.showToast('error', '未指定任务')
-            return false
-        }
-
-        const taskMeta = interfaceData.task.find(x => x.name === task.task)
-        if (!taskMeta) {
-            globalThis.renderer.utils.showToast('error', `未找到任务 ${task.task}`)
-            return false
-        }
-
-        const override: Record<string, Record<string, unknown>> = {}
-        const applyOverride = (po?: unknown) => {
-            if (po) {
-                for (const [key, val] of Object.entries(po)) {
-                    override[key] = Object.assign(override[key] ?? {}, val)
-                }
-            }
-        }
-
-        applyOverride(taskMeta.pipeline_override)
-        for (const option of taskMeta.option ?? []) {
-            const optionMeta = interfaceData.option?.[option]
-            if (!optionMeta) {
-                globalThis.renderer.utils.showToast('error', `未找到选项组 ${option}`)
-                return false
-            }
-
-            const val = task.option?.[option] ?? optionMeta.default_case ?? optionMeta.cases[0].name
-            const caseMeta = optionMeta.cases.find(x => x.name === val)
-            if (!caseMeta) {
-                globalThis.renderer.utils.showToast('error', `未找到选项 ${val}`)
-                return false
-            }
-            applyOverride(caseMeta.pipeline_override)
-        }
-
-        return await launch.instance.tasker?.post_task(taskMeta.entry, override).wait().succeeded
+        return result
     }
 }

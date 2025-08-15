@@ -3,6 +3,18 @@ import electron from 'electron'
 import esbuild from 'esbuild'
 import { build, createServer } from 'vite'
 
+async function watchRunner() {
+    const ctx = await esbuild.context({
+        entryPoints: ['pkgs/runner/src/main.ts'],
+        platform: 'node',
+        bundle: true,
+        external: ['@maaxyz/maa-node', 'node-gyp/bin/node-gyp.js'],
+        outdir: './dist/runner',
+        sourcemap: true
+    })
+    await ctx.watch()
+}
+
 /**
  * @type {(server: import('vite').ViteDevServer, preloadOk: Promise<void> | null) => Promise<import('rollup').RollupWatcher>}
  */
@@ -117,6 +129,8 @@ function watchPreload(server) {
     })
     return preloadOk
 }
+
+watchRunner()
 
 const server = await createServer({
     configFile: 'pkgs/renderer/vite.config.mts'

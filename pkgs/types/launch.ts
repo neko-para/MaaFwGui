@@ -17,7 +17,6 @@ export type LaunchInfo = {
         client?: maa.AgentClient
         agent?: child_process.ChildProcess
 
-        stopped: [Promise<null>, (v: null) => void]
         postStop?: Promise<boolean>
         postConn?: Promise<boolean>
 
