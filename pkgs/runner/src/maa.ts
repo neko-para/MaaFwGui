@@ -1,20 +1,20 @@
-import { MaaLoader, MaaLoaderOption, maa, setMaa } from '@mfg/maa'
+import path from 'path'
+
+import { maa, setMaa } from './data'
 
 export async function setupMaa() {
-    const option = JSON.parse(process.env['MFG_MAA_LOADER_OPTION']!) as MaaLoaderOption
+    const maaDir = process.env['MFG_MAA_DIR']!
     const logDir = process.env['MFG_LOG_DIR']!
 
-    const loader = new MaaLoader(option)
-    await loader.init()
+    module.paths.unshift(path.join(maaDir, 'node_modules'))
 
-    const m = await loader.load()
-    if (!m) {
+    try {
+        let instance = require('@maaxyz/maa-node')
+        setMaa(instance)
+
+        maa.Global.log_dir = logDir
+        return true
+    } catch {
         return false
     }
-
-    setMaa(m)
-
-    maa.Global.log_dir = logDir
-
-    return true
 }

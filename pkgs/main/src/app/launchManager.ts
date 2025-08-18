@@ -13,8 +13,10 @@ import {
 import * as child_process from 'child_process'
 import * as path from 'path'
 
+import { makeProgress } from '../utils/progress'
 import { generateId } from '../utils/uuid'
 import { mfgApp } from './app'
+import { MfgMaaManager } from './maaManager'
 
 export class MfgLaunchManager {
     launchIndex: Record<ProfileId, LaunchId> = {}
@@ -141,6 +143,19 @@ export class MfgLaunchManager {
             return false
         }
 
+        let maaVer = 'v4.4.1'
+
+        const prog = makeProgress()
+        let loadMaa = mfgApp.maaManager.loader!.prepare(maaVer, MfgMaaManager.printStatus(prog))
+        setTimeout(() => {
+            prog.end()
+        }, 2000)
+
+        if (!loadMaa) {
+            globalThis.renderer.utils.showToast('error', '准备MaaFramework失败')
+            return false
+        }
+
         const proj = mfgApp.config.projects?.find(x => x.id === stage.project)
         if (!proj) {
             // 按理说不应该, 大概是用户在搞事
@@ -154,7 +169,7 @@ export class MfgLaunchManager {
 
             ELECTRON_RUN_AS_NODE: '1',
 
-            MFG_MAA_LOADER_OPTION: JSON.stringify(mfgApp.config.maaOption),
+            MFG_MAA_DIR: mfgApp.maaManager.loader!.folderFor(maaVer),
             MFG_LOG_DIR: projectDir,
 
             MFG_INTERFACE: JSON.stringify(interfaceData),

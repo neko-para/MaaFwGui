@@ -1,3 +1,4 @@
+import type { Maa } from '@mfg/maa'
 import { AdbDevice, Interface, LaunchInfo, StageInfo } from '@mfg/types'
 
 export let interfaceData: Interface
@@ -14,4 +15,10 @@ export function parseData() {
     if (process.env['MFG_DEV']) {
         dev = JSON.parse(process.env['MFG_DEV'])
     }
+}
+
+export let maa: Maa
+
+export function setMaa(m: Maa) {
+    maa = m
 }

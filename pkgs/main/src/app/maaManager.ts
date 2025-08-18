@@ -1,7 +1,7 @@
-import { MaaLoader, MaaLoaderRegistry, maa, setMaa } from '@mfg/maa'
+import { MaaLoader, MaaLoaderRegistry, MaaPrepareProgress, maa, setMaa } from '@mfg/maa'
 import path from 'path'
 
-import { makeProgress } from '../utils/progress'
+import { ProgressInstance, makeProgress } from '../utils/progress'
 import { mfgApp } from './app'
 
 export class MfgMaaManager {
@@ -25,31 +25,7 @@ export class MfgMaaManager {
             }
 
             const prog = makeProgress()
-            const m = await this.loader.load(state => {
-                switch (state) {
-                    case 'checking':
-                        prog.update('MaaFramework: 检查安装中')
-                        break
-                    case 'preparing-folder':
-                        prog.update('MaaFramework: 准备目录中')
-                        break
-                    case 'downloading-scripts':
-                        prog.update('MaaFramework: 下载脚本中')
-                        break
-                    case 'downloading-binary':
-                        prog.update('MaaFramework: 下载二进制中')
-                        break
-                    case 'moving-folder':
-                        prog.update('MaaFramework: 移动目录中')
-                        break
-                    case 'succeeded':
-                        prog.update('MaaFramework: 加载成功')
-                        break
-                    case 'failed':
-                        prog.update('MaaFramework: 加载失败')
-                        break
-                }
-            })
+            const m = await this.loader.load(MfgMaaManager.printStatus(prog))
             setTimeout(() => {
                 prog.end()
             }, 2000)
@@ -94,6 +70,34 @@ export class MfgMaaManager {
                     downloaded: locals.has(`v${version}`)
                 }
             })
+        }
+    }
+
+    static printStatus(prog: ProgressInstance): MaaPrepareProgress {
+        return state => {
+            switch (state) {
+                case 'checking':
+                    prog.update('MaaFramework: 检查安装中')
+                    break
+                case 'preparing-folder':
+                    prog.update('MaaFramework: 准备目录中')
+                    break
+                case 'downloading-scripts':
+                    prog.update('MaaFramework: 下载脚本中')
+                    break
+                case 'downloading-binary':
+                    prog.update('MaaFramework: 下载二进制中')
+                    break
+                case 'moving-folder':
+                    prog.update('MaaFramework: 移动目录中')
+                    break
+                case 'succeeded':
+                    prog.update('MaaFramework: 加载成功')
+                    break
+                case 'failed':
+                    prog.update('MaaFramework: 加载失败')
+                    break
+            }
         }
     }
 }

@@ -1,9 +1,8 @@
-import { maa } from '@mfg/maa'
 import { LaunchPrepareStatus, TaskInfo } from '@mfg/types'
 import child_process from 'child_process'
 import path from 'path'
 
-import { dev, interfaceData, launch, parseData, projectDir, stage } from './data'
+import { dev, interfaceData, launch, maa, parseData, projectDir, stage } from './data'
 import { pushActiveOutput, pushError, pushFocus, pushOutput, pushStatus } from './ipc'
 import { setupMaa } from './maa'
 import { escapeArg, parseFocus } from './utils'
