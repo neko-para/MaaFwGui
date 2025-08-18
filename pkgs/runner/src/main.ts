@@ -1,187 +1,12 @@
-import { MaaLoader, MaaLoaderOption, maa, setMaa } from '@mfg/maa'
-import {
-    AdbDevice,
-    Interface,
-    LaunchActiveOutput,
-    LaunchInfo,
-    LaunchPrepareStatus,
-    RunnerMessage,
-    StageInfo,
-    TaskInfo
-} from '@mfg/types'
+import { maa } from '@mfg/maa'
+import { LaunchPrepareStatus, TaskInfo } from '@mfg/types'
 import child_process from 'child_process'
 import path from 'path'
 
-function escape_win32(arg: string) {
-    if (arg.length === 0) {
-        return '"'.repeat(2) // 等价于 C++: os_string(2, '"')
-    }
-
-    let space = false
-    let len = arg.length
-
-    for (const ch of arg) {
-        switch (ch) {
-            case '"':
-            case '\\':
-                len += 1
-                break
-            case ' ':
-            case '\t':
-                space = true
-                break
-        }
-    }
-
-    if (space) {
-        len += 2
-    }
-
-    if (len === arg.length) {
-        return arg
-    }
-
-    // 使用数组而不是预分配字符串 & reserve
-    let buf = []
-
-    if (space) {
-        buf.push('"')
-    }
-
-    let slash = 0
-
-    for (const ch of arg) {
-        switch (ch) {
-            case '\\':
-                slash += 1
-                buf.push('\\')
-                break
-            case '"':
-                buf.push('\\'.repeat(slash + 1))
-                buf.push('"')
-                slash = 0
-                break
-            default:
-                slash = 0
-                buf.push(ch)
-        }
-    }
-    if (space) {
-        buf.push('\\'.repeat(slash))
-        buf.push('"')
-    }
-
-    return buf.join('')
-}
-
-function escape_posix(arg: string) {
-    return JSON.stringify(arg) // 基本上差不多
-}
-
-type FocusNotify = {
-    start: string[]
-    succeeded: string[]
-    failed: string[]
-    toast?: string
-}
-
-function parseFocus(data: unknown): FocusNotify {
-    const result: FocusNotify = {
-        start: [],
-        succeeded: [],
-        failed: []
-    }
-    if (typeof data !== 'object' || data === null) {
-        return result
-    }
-    const check = (v: unknown): v is string | string[] => {
-        return (
-            typeof v === 'string' ||
-            (Array.isArray(v) && v.map(x => typeof x === 'string').reduce((a, b) => a && b, true))
-        )
-    }
-    const wrap = (v: string | string[]) => {
-        return typeof v === 'string' ? [v] : v
-    }
-    if ('start' in data && check(data.start)) {
-        result.start = wrap(data.start)
-    }
-    if ('succeeded' in data && check(data.succeeded)) {
-        result.succeeded = wrap(data.succeeded)
-    }
-    if ('failed' in data && check(data.failed)) {
-        result.failed = wrap(data.failed)
-    }
-    if ('toast' in data && typeof data.toast === 'string') {
-        result.toast = data.toast
-    }
-    return result
-}
-
-async function setupMaa() {
-    const option = JSON.parse(process.env['MFG_MAA_LOADER_OPTION']!) as MaaLoaderOption
-    const logDir = process.env['MFG_LOG_DIR']!
-
-    const loader = new MaaLoader(option)
-    await loader.init()
-
-    const m = await loader.load()
-    if (!m) {
-        return false
-    }
-
-    setMaa(m)
-
-    maa.Global.log_dir = logDir
-
-    return true
-}
-
-let interfaceData: Interface
-let launch: LaunchInfo
-let stage: StageInfo
-let projectDir: string
-let dev: AdbDevice | undefined
-
-function pushMessage(msg: RunnerMessage) {
-    process.send?.(msg)
-}
-
-function pushStatus() {
-    pushMessage({
-        type: 'updateStatus',
-        status: launch.status
-    })
-}
-
-function pushError(error: string) {
-    pushMessage({
-        type: 'showError',
-        error
-    })
-}
-
-function pushActiveOutput(output: LaunchActiveOutput) {
-    pushMessage({
-        type: 'setActiveOutput',
-        output
-    })
-}
-
-function pushOutput(category: 'agent' | 'focus', output: string) {
-    pushMessage({
-        type: 'addOutput',
-        category,
-        output
-    })
-}
-
-function pushFocus(focus: string) {
-    pushMessage({
-        type: 'showFocus',
-        focus
-    })
-}
+import { dev, interfaceData, launch, parseData, projectDir, stage } from './data'
+import { pushActiveOutput, pushError, pushFocus, pushOutput, pushStatus } from './ipc'
+import { setupMaa } from './maa'
+import { escapeArg, parseFocus } from './utils'
 
 async function launchStage() {
     launch.status.stages[stage.id] = 'running'
@@ -316,13 +141,12 @@ async function prepareInstanceImpl() {
         const identifier = launch.instance.client.identifier ?? 'mfg-no-identifier'
 
         try {
-            const escapeItem = process.platform === 'win32' ? escape_win32 : escape_posix
             const cp = child_process.spawn(
-                escapeItem(interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir)),
+                escapeArg(interfaceData.agent.child_exec.replaceAll('{PROJECT_DIR}', projectDir)),
                 (interfaceData.agent.child_args ?? [])
                     .map(arg => arg.replaceAll('{PROJECT_DIR}', projectDir))
                     .concat([identifier])
-                    .map(escapeItem),
+                    .map(escapeArg),
                 {
                     stdio: 'pipe',
                     shell: process.platform === 'win32' ? 'cmd.exe' : true,
@@ -552,13 +376,7 @@ async function main() {
         return false
     }
 
-    interfaceData = JSON.parse(process.env['MFG_INTERFACE']!)
-    launch = JSON.parse(process.env['MFG_LAUNCH']!)
-    stage = JSON.parse(process.env['MFG_STAGE']!)
-    projectDir = process.env['MFG_PROJECT_DIR']!
-    if (process.env['MFG_DEV']) {
-        dev = JSON.parse(process.env['MFG_DEV'])
-    }
+    parseData()
 
     return await launchStage()
 }
