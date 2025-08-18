@@ -1,4 +1,4 @@
 {
-    "name": "@mfg/maa",
+    "name": "@mfg/runner",
     "main": "src/main.ts"
 }
